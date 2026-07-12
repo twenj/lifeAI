@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "记事本",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

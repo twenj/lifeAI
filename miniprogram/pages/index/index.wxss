@@ -1,0 +1,38 @@
+page {
+  height: 100%;
+  background: #f6f7fb;
+}
+
+.chat-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.chat-header {
+  padding: 42rpx 32rpx 26rpx;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #edf0f5;
+}
+
+.chat-title { font-size: 36rpx; font-weight: 700; color: #20242d; }
+.chat-subtitle { margin-top: 8rpx; font-size: 24rpx; color: #8a93a3; }
+.clear-button { padding: 14rpx 20rpx; border-radius: 28rpx; font-size: 26rpx; color: #526278; background: #f0f3f8; }
+
+.message-list { flex: 1; min-height: 0; padding: 28rpx 28rpx 16rpx; box-sizing: border-box; }
+.message-row { display: flex; align-items: flex-start; margin-bottom: 28rpx; }
+.message-row.user { flex-direction: row-reverse; }
+.avatar { flex: none; width: 58rpx; height: 58rpx; border-radius: 50%; line-height: 58rpx; text-align: center; font-size: 22rpx; font-weight: 600; color: #fff; background: #6474e5; }
+.user .avatar { background: #42aa83; }
+.message-bubble { max-width: 76%; margin-left: 16rpx; padding: 20rpx 24rpx; border-radius: 10rpx 24rpx 24rpx; background: #fff; color: #252a35; font-size: 30rpx; line-height: 1.55; white-space: pre-wrap; word-break: break-word; box-shadow: 0 4rpx 14rpx rgba(35, 46, 70, 0.05); }
+.user .message-bubble { margin-left: 0; margin-right: 16rpx; border-radius: 24rpx 10rpx 24rpx 24rpx; color: #fff; background: #6474e5; }
+.loading { color: #8993a5; }
+
+.composer { flex: none; padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 18rpx; background: #fff; border-top: 1rpx solid #edf0f5; }
+.message-input { flex: 1; min-height: 76rpx; max-height: 180rpx; padding: 17rpx 20rpx; box-sizing: border-box; border-radius: 18rpx; background: #f3f5f8; font-size: 30rpx; line-height: 42rpx; }
+.send-button { flex: none; height: 76rpx; padding: 0 22rpx; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: 18rpx; background: #d9dee8; color: #fff; font-size: 28rpx; }
+.send-button.active { background: #6474e5; }

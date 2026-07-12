@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "减脂",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "Life AI",
+        "navigationBarBackgroundColor": "#FFFFFF",
+        "navigationBarTextStyle": "black",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/index",
+      "style": {
+        "navigationBarTitleText": "我的生活",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/notepad",
+      "style": {
+        "navigationBarTitleText": "记事本",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/fatloss",
+      "style": {
+        "navigationBarTitleText": "减脂",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/weight",
+      "style": {
+        "navigationBarTitleText": "体重记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/diet",
+      "style": {
+        "navigationBarTitleText": "饮食记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/diet-history",
+      "style": {
+        "navigationBarTitleText": "饮食历史",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/diet-day",
+      "style": {
+        "navigationBarTitleText": "当天饮食",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/food",
+      "style": {
+        "navigationBarTitleText": "食物库",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/schedule",
+      "style": {
+        "navigationBarTitleText": "日程",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/journal",
+      "style": {
+        "navigationBarTitleText": "日记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/share",
+      "style": {
+        "navigationBarTitleText": "数据共享",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/ledger",
+      "style": {
+        "navigationBarTitleText": "记账",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/ledger-history",
+      "style": {
+        "navigationBarTitleText": "记账历史",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/ledger-month",
+      "style": {
+        "navigationBarTitleText": "月度账单",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/modules/shopping",
+      "style": {
+        "navigationBarTitleText": "待购买",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "backgroundColor": "#F2F6EB",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTextStyle": "black"
+  }
+}

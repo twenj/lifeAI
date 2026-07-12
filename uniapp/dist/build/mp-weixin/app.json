@@ -1,0 +1,26 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/modules/index",
+    "pages/modules/notepad",
+    "pages/modules/fatloss",
+    "pages/modules/weight",
+    "pages/modules/diet",
+    "pages/modules/diet-history",
+    "pages/modules/diet-day",
+    "pages/modules/food",
+    "pages/modules/schedule",
+    "pages/modules/journal",
+    "pages/modules/share",
+    "pages/modules/ledger",
+    "pages/modules/ledger-history",
+    "pages/modules/ledger-month",
+    "pages/modules/shopping"
+  ],
+  "window": {
+    "backgroundColor": "#F2F6EB",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTextStyle": "black"
+  },
+  "usingComponents": {}
+}

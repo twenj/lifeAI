@@ -1,0 +1,1 @@
+"use strict";const e=require("../../common/vendor.js");Math||t();const t=()=>"../../components/PageNavbar.js",a={__name:"fatloss",setup:t=>(t,a)=>({a:e.p({title:"减脂"})})},s=e._export_sfc(a,[["__scopeId","data-v-e59f43ac"]]);wx.createPage(s);

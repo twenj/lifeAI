@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "project-memory": {
+      "command": "node",
+      "args": [
+        "/Users/tangwenjing/myproject/project_memory/dist/index.js"
+      ],
+      "env": {
+        "PROJECT_MEMORY_ROOT": "/Users/tangwenjing/WeChatProjects/lifeAI"
+      }
+    }
+  }
+}

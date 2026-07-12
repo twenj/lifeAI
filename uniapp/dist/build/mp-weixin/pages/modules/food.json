@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "食物库",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

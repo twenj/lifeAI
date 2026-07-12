@@ -1,0 +1,34 @@
+<view class="chat-page">
+  <view class="chat-header">
+    <view>
+      <view class="chat-title">Life AI</view>
+      <view class="chat-subtitle">你的随身智能助手</view>
+    </view>
+    <view class="clear-button" bindtap="clearConversation">新对话</view>
+  </view>
+
+  <scroll-view class="message-list" scroll-y scroll-with-animation scroll-into-view="{{scrollIntoView}}">
+    <view wx:for="{{messages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.role}}">
+      <view class="avatar">{{item.role === 'user' ? '我' : 'AI'}}</view>
+      <view class="message-bubble">{{item.content}}</view>
+    </view>
+    <view wx:if="{{isLoading}}" id="message-loading" class="message-row assistant">
+      <view class="avatar">AI</view>
+      <view class="message-bubble loading">正在思考…</view>
+    </view>
+  </scroll-view>
+
+  <view class="composer">
+    <textarea
+      class="message-input"
+      placeholder="输入消息…"
+      value="{{inputValue}}"
+      bindinput="onInput"
+      maxlength="2000"
+      auto-height
+      confirm-type="send"
+      bindconfirm="sendMessage"
+    />
+    <view class="send-button {{inputValue && !isLoading ? 'active' : ''}}" bindtap="sendMessage">发送</view>
+  </view>
+</view>

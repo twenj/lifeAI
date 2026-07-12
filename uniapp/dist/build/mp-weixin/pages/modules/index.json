@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的生活",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

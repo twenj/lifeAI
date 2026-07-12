@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "日记",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

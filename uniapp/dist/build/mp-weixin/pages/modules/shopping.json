@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "待购买",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

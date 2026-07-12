@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "饮食记录",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

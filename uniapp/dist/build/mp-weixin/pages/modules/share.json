@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "数据共享",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "page-navbar": "../../components/PageNavbar"
+  }
+}

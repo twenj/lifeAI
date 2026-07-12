@@ -1,0 +1,43 @@
+{
+  "name": "Life AI",
+  "appid": "com.lifeai.app",
+  "description": "基于 DeepSeek 的 AI 聊天应用",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "h5": {
+    "title": "Life AI",
+    "router": {
+      "mode": "hash"
+    },
+    "devServer": {
+      "port": 5173
+    }
+  },
+  "app-plus": {
+    "usingComponents": true,
+    "distribute": {
+      "icons": {
+        "android": {
+          "ldpi": "static/app-icons/icon-36.png",
+          "mdpi": "static/app-icons/icon-48.png",
+          "hdpi": "static/app-icons/icon-72.png",
+          "xhdpi": "static/app-icons/icon-96.png",
+          "xxhdpi": "static/app-icons/icon-144.png",
+          "xxxhdpi": "static/app-icons/icon-192.png"
+        },
+        "ios": {
+          "appstore": "static/app-icons/icon-1024.png"
+        }
+      },
+      "apple": {
+        "appid": "com.lifeai.app"
+      }
+    }
+  },
+  "mp-weixin": {
+    "appid": "wx9fd2932b9bfed658",
+    "setting": {
+      "urlCheck": true
+    }
+  }
+}
