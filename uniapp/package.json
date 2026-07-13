@@ -6,6 +6,7 @@
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",
     "build:app": "uni build -p app",
+    "build:android": "uni build -p app",
     "dev:h5": "uni",
     "build:h5": "uni build"
   },

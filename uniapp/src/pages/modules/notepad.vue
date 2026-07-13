@@ -1,7 +1,7 @@
 <template>
   <view class="notepad-page">
     <template v-if="editorVisible">
-      <view class="editor-page">
+      <view class="editor-page" :style="pageInsets">
         <view class="editor-navbar">
           <view class="editor-back" @tap="closeEditor">‹ 返回</view>
           <view class="editor-navbar-title">{{ editingId ? '编辑笔记' : '新建笔记' }}</view>
@@ -46,6 +46,10 @@ import PageNavbar from '../../components/PageNavbar.vue'
 import { backendApi } from '../../lib/api.js'
 
 const notes = ref([])
+const systemInfo = uni.getSystemInfoSync?.() || {}
+const pageInsets = {
+  '--status-bar-height': `${Number(systemInfo.statusBarHeight || 0)}px`,
+}
 const loading = ref(false)
 const saving = ref(false)
 const editorVisible = ref(false)
@@ -146,7 +150,7 @@ onMounted(loadNotes)
 .note-time { margin-top: 14rpx; font-size: 22rpx; color: var(--life-muted); }
 .delete-button { flex: none; padding: 12rpx; color: #b97970; font-size: 24rpx; }
 .editor-page { min-height: 100vh; background: var(--life-bg); }
-.editor-navbar { display: flex; align-items: center; justify-content: space-between; height: calc(88rpx + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 24rpx 0; box-sizing: border-box; background: var(--life-surface); border-bottom: 1rpx solid var(--life-border); }
+.editor-navbar { display: flex; align-items: center; justify-content: space-between; height: calc(88rpx + var(--status-bar-height, 0px) + env(safe-area-inset-top)); padding: calc(var(--status-bar-height, 0px) + env(safe-area-inset-top)) 24rpx 0; box-sizing: border-box; background: var(--life-surface); border-bottom: 1rpx solid var(--life-border); }
 .editor-back { width: 160rpx; color: var(--life-primary-deep); font-size: 28rpx; }
 .editor-navbar-title { flex: 1; text-align: center; color: var(--life-text); font-size: 32rpx; font-weight: 700; }
 .editor-navbar-placeholder { width: 160rpx; }

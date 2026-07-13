@@ -22,11 +22,13 @@
 3. H5 开发态通过 Vite `/backend` 代理请求 Node.js API，API Key 不会打进前端包。
 3. 生产构建：`pnpm run build:h5`，产物在 `uniapp/dist/build/h5`。静态托管时需要自行部署等价的 `/api/chat` 后端；本地可用 `vite preview`（同样挂载了该接口）验证。
 
-### App / iOS
+### App / Android / iOS
 
-1. 在 `uniapp/src/manifest.json` 的 `app-plus.distribute.apple.appid` 中替换为自己的 iOS Bundle ID。
-2. 执行 `pnpm run build:app`，生成 App-Plus 资源到 `uniapp/dist/build/app`。
-3. 使用 HBuilderX 导入该资源，选择“发行 → 原生 App-云打包 → iOS”，配置 Apple Developer 证书和描述文件后生成 `.ipa`；也可以导出 Xcode 工程后用 Xcode 签名打包。
+1. 在 `uniapp/src/manifest.json` 的 `app-plus.distribute.apple.appid` 中替换为自己的 iOS Bundle ID；Android 包名可在 HBuilderX 的 manifest 可视化配置中设置。
+2. 执行 `pnpm run build:android`（或通用命令 `pnpm run build:app`），生成 App-Plus 资源到 `uniapp/dist/build/app`。
+3. 使用 HBuilderX 打开项目，选择“发行 → 原生 App-云打包 → Android”，配置 Android 证书后生成 `.apk` 或 `.aab`；也可以选择本地打包导出 Android 工程后用 Android Studio 签名。
+
+Android 云打包需要配置 Android 证书；测试阶段可以使用 HBuilderX 的公共测试证书，正式发布建议使用自己的签名证书。
 
 `build:app` 只负责生成 App 端资源，不能绕过 Apple 签名直接生成可上架的 `.ipa`。日程本地提醒仅在 App-Plus 真机包中生效。
 

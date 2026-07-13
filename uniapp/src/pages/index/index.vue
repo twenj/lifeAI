@@ -1,5 +1,5 @@
 <template>
-  <view class="chat-page">
+  <view class="chat-page" :style="pageInsets">
     <view class="chat-header">
       <view>
         <view class="chat-title">小日子 AI</view>
@@ -29,10 +29,32 @@
               class="bubble-image"
               :src="src"
               mode="aspectFill"
-              @tap.stop="previewImages(item.images, index)"
+              @tap="previewImages(item.images, index)"
             />
           </view>
-            <text v-if="item.content" class="bubble-text">{{ item.content }}</text>
+            <template v-if="item.content">
+              <template v-for="(segment, segmentIndex) in messageSegments(item.content)" :key="`${item.id}-segment-${segmentIndex}`">
+                <view v-if="segment.type === 'table'" class="markdown-table-wrap">
+                  <scroll-view class="markdown-table-scroll" scroll-x>
+                    <view class="markdown-table">
+                      <view class="markdown-table-row header">
+                        <view v-for="(cell, cellIndex) in segment.rows[0]" :key="`head-${cellIndex}`" class="markdown-table-cell"><text selectable>{{ cell }}</text></view>
+                      </view>
+                      <view v-for="(row, rowIndex) in segment.rows.slice(1)" :key="`row-${rowIndex}`" class="markdown-table-row">
+                        <view v-for="(cell, cellIndex) in row" :key="`cell-${cellIndex}`" class="markdown-table-cell"><text selectable>{{ cell }}</text></view>
+                      </view>
+                    </view>
+                  </scroll-view>
+                </view>
+                <view v-else-if="segment.type === 'heading'" class="markdown-heading" :class="`heading-${segment.level}`"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
+                <view v-else-if="segment.type === 'list'" class="markdown-list-item"><text selectable class="markdown-list-marker">{{ segment.marker }}</text><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
+                <view v-else-if="segment.type === 'quote'" class="markdown-quote"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
+                <text selectable v-else-if="segment.type === 'code'" class="markdown-code">{{ segment.content }}</text>
+                <view v-else-if="segment.type === 'hr'" class="markdown-hr" />
+                <text selectable v-else class="bubble-text"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></text>
+              </template>
+              <view class="copy-message" @tap.stop="copyMessage(item.content)"><text class="copy-icon">⧉</text>复制</view>
+            </template>
             <view v-if="item.foodLabel" class="food-label-result">
               <view class="food-label-line">每100g：{{ item.foodLabel.nutritionPer100g.calories ?? '—' }} kcal</view>
               <view class="food-label-line">蛋白质 {{ item.foodLabel.nutritionPer100g.proteinG ?? '—' }}g · 脂肪 {{ item.foodLabel.nutritionPer100g.fatG ?? '—' }}g</view>
@@ -132,7 +154,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { backendApi } from '../../lib/api.js'
 
 const STORAGE_KEY = 'lifeai-conversations'
@@ -150,6 +172,11 @@ const loadConversations = () => {
 }
 
 const conversations = ref(loadConversations())
+const systemInfo = uni.getSystemInfoSync?.() || {}
+const pageInsets = {
+  '--status-bar-height': `${Number(systemInfo.statusBarHeight || 0)}px`,
+  '--bottom-safe-height': `${Number(systemInfo.safeAreaInsets?.bottom || 0)}px`,
+}
 const currentId = ref('')
 const messages = ref([welcome('今天过得怎么样？')])
 const inputValue = ref('')
@@ -185,6 +212,103 @@ const conversationTitle = (list) => {
   if (firstUser.content?.trim()) return firstUser.content.replace(/\s+/g, ' ').slice(0, 28)
   if (firstUser.images?.length) return '图片消息'
   return '新对话'
+}
+
+const tableSeparator = (line) => {
+  const cells = line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim())
+  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell))
+}
+
+const tableRow = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim())
+
+const inlineParts = (content) => {
+  const source = String(content || '')
+  const pattern = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*]+\*|_[^_]+_)/g
+  const parts = []
+  let cursor = 0
+  let match
+  while ((match = pattern.exec(source))) {
+    if (match.index > cursor) parts.push({ type: 'plain', text: source.slice(cursor, match.index) })
+    const value = match[0]
+    const strong = value.startsWith('**') || value.startsWith('__')
+    const code = value.startsWith('`')
+    parts.push({ type: strong ? 'strong' : code ? 'code' : 'em', text: value.slice(strong ? 2 : 1, strong ? -2 : -1) })
+    cursor = match.index + value.length
+  }
+  if (cursor < source.length) parts.push({ type: 'plain', text: source.slice(cursor) })
+  return parts.length ? parts : [{ type: 'plain', text: source }]
+}
+
+const messageSegments = (content) => {
+  const lines = String(content || '').split('\n')
+  const segments = []
+  let textLines = []
+  const flushText = () => {
+    if (textLines.length) {
+      segments.push({ type: 'text', content: textLines.join('\n') })
+      textLines = []
+    }
+  }
+  let index = 0
+  while (index < lines.length) {
+    if (lines[index].includes('|') && index + 1 < lines.length && tableSeparator(lines[index + 1])) {
+      flushText()
+      const rows = [tableRow(lines[index])]
+      index += 2
+      while (index < lines.length && lines[index].includes('|') && lines[index].trim()) {
+        rows.push(tableRow(lines[index]))
+        index += 1
+      }
+      if (rows[0].length > 0) segments.push({ type: 'table', rows })
+      continue
+    }
+    const codeStart = lines[index].match(/^\s*```(?:\w+)?\s*$/)
+    if (codeStart) {
+      const codeLines = []
+      index += 1
+      while (index < lines.length && !/^\s*```\s*$/.test(lines[index])) codeLines.push(lines[index++])
+      if (index < lines.length) index += 1
+      segments.push({ type: 'code', content: codeLines.join('\n') })
+      continue
+    }
+    const heading = lines[index].match(/^\s*(#{1,6})\s+(.+)$/)
+    if (heading) {
+      segments.push({ type: 'heading', level: heading[1].length, content: heading[2] })
+      index += 1
+      continue
+    }
+    const list = lines[index].match(/^\s*(?:([-*+])|(\d+\.))\s+(.+)$/)
+    if (list) {
+      segments.push({ type: 'list', marker: list[1] || list[2], content: list[3] })
+      index += 1
+      continue
+    }
+    const quote = lines[index].match(/^\s*>\s?(.*)$/)
+    if (quote) {
+      segments.push({ type: 'quote', content: quote[1] })
+      index += 1
+      continue
+    }
+    if (/^\s*(?:\*\s*){3,}$/.test(lines[index]) || /^\s*[-_]{3,}\s*$/.test(lines[index])) {
+      segments.push({ type: 'hr', content: '' })
+      index += 1
+      continue
+    }
+    textLines.push(lines[index])
+    index += 1
+  }
+  flushText()
+  return segments.length ? segments : [{ type: 'text', content: String(content || '') }]
+}
+
+const copyMessage = (content) => {
+  const value = String(content || '').trim()
+  if (!value) return
+  uni.setClipboardData({
+    data: value,
+    success: () => uni.showToast({ title: '已复制', icon: 'success' }),
+    fail: () => uni.showToast({ title: '复制失败', icon: 'none' }),
+  })
 }
 
 const persistConversations = () => {
@@ -301,13 +425,55 @@ const removePendingImage = (index) => {
   pendingImages.value = pendingImages.value.filter((_, i) => i !== index)
 }
 
-const previewImages = (urls, current = 0) => {
+const previewImages = async (urls, current = 0) => {
   if (!urls?.length) return
-  uni.previewImage({
-    urls,
-    current: urls[current] || urls[0],
-  })
+  const previewUrls = [...urls]
+  if (typeof plus !== 'undefined' && uni.getFileSystemManager) {
+    const fs = uni.getFileSystemManager()
+    await Promise.all(previewUrls.map(async (url, index) => {
+      const match = String(url).match(/^data:image\/([^;]+);base64,(.*)$/)
+      if (!match) return
+      const extension = match[1] === 'jpeg' ? 'jpg' : match[1]
+      const privateDoc = typeof plus.io?.PRIVATE_DOC === 'string' ? plus.io.PRIVATE_DOC : '_doc'
+      const filePath = `${privateDoc}/lifeai-preview-${Date.now()}-${index}.${extension}`
+      await new Promise((resolve) => fs.writeFile({
+        filePath,
+        encoding: 'base64',
+        data: match[2],
+        success: () => { previewUrls[index] = filePath; resolve() },
+        fail: (error) => { console.warn('preview image write failed', error); resolve() },
+      }))
+    }))
+  }
+  if (typeof plus !== 'undefined' && !previewUrls.some((url) => url && !String(url).startsWith('data:image/'))) {
+    uni.showToast({ title: '图片预览失败，请重新上传', icon: 'none' })
+    return
+  }
+  uni.previewImage({ urls: previewUrls, current: previewUrls[current] || previewUrls[0], fail: () => uni.showToast({ title: '图片预览失败', icon: 'none' }) })
 }
+
+const handleClipboardPaste = async (event) => {
+  const items = Array.from(event?.clipboardData?.items || [])
+  const files = items.filter((item) => item.type.startsWith('image/')).map((item) => item.getAsFile()).filter(Boolean)
+  if (!files.length) return
+  event.preventDefault()
+  const dataUrls = await Promise.all(files.map((file) => new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(file)
+  })))
+  pendingImages.value = [...pendingImages.value, ...dataUrls.filter(Boolean)].slice(0, MAX_IMAGES)
+  imagePurpose.value = 'normal'
+  uni.showToast({ title: '图片已粘贴', icon: 'success' })
+}
+
+onMounted(() => {
+  if (typeof document !== 'undefined') document.addEventListener('paste', handleClipboardPaste)
+})
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') document.removeEventListener('paste', handleClipboardPaste)
+})
 
 const buildHistoryPayload = (list) =>
   list.slice(-12).map(({ role, content, images }) => ({
@@ -555,7 +721,7 @@ const removeConversation = async (id) => {
 }
 .chat-header {
   padding: 42rpx 32rpx 26rpx;
-  padding-top: calc(42rpx + env(safe-area-inset-top));
+  padding-top: calc(42rpx + var(--status-bar-height, 0px) + env(safe-area-inset-top));
   background: var(--life-surface);
   display: flex;
   justify-content: space-between;
@@ -633,6 +799,22 @@ const removeConversation = async (id) => {
   line-height: 1.55;
   box-shadow: 0 4rpx 14rpx var(--life-shadow);
 }
+.copy-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 16rpx;
+  margin-left: 6rpx;
+  padding: 8rpx 14rpx;
+  border: 1rpx solid var(--life-border);
+  border-radius: 999rpx;
+  background: var(--life-surface-soft);
+  color: var(--life-muted);
+  font-size: 22rpx;
+  line-height: 1.2;
+}
+.copy-message:active { opacity: .65; transform: scale(.97); }
+.copy-icon { font-size: 24rpx; line-height: 1; color: var(--life-primary-deep); }
 .user .message-bubble {
   margin-left: 0;
   margin-right: 16rpx;
@@ -640,10 +822,30 @@ const removeConversation = async (id) => {
   color: #fff;
   background: var(--life-primary);
 }
+.user .copy-message { border-color: rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .14); color: rgba(255, 255, 255, .85); }
+.user .copy-icon { color: #fff; }
 .bubble-text {
   white-space: pre-wrap;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
 }
+.markdown-heading { margin: 8rpx 0 14rpx; color: var(--life-text); font-weight: 700; line-height: 1.35; }
+.heading-1 { font-size: 36rpx; }.heading-2 { font-size: 33rpx; }.heading-3 { font-size: 31rpx; }.heading-4, .heading-5, .heading-6 { font-size: 29rpx; }
+.markdown-list-item { display: flex; align-items: flex-start; margin: 6rpx 0; white-space: pre-wrap; word-break: break-word; }
+.markdown-list-marker { flex: none; width: 42rpx; color: var(--life-primary-deep); font-weight: 700; }
+.markdown-quote { margin: 8rpx 0; padding: 8rpx 16rpx; border-left: 6rpx solid var(--life-primary); background: var(--life-surface-soft); color: var(--life-muted); white-space: pre-wrap; }
+.markdown-code { margin: 10rpx 0; padding: 16rpx; border-radius: 12rpx; background: #273126; color: #e8f0dc; font-family: monospace; font-size: 24rpx; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.markdown-hr { height: 1rpx; margin: 18rpx 0; background: var(--life-border); }
+.inline-strong { font-weight: 700; }.inline-em { font-style: italic; color: var(--life-primary-deep); }.inline-code { padding: 2rpx 8rpx; border-radius: 6rpx; background: var(--life-surface-soft); color: var(--life-primary-deep); font-family: monospace; }
+.markdown-table-wrap { max-width: 100%; margin: 4rpx 0 12rpx; overflow: hidden; }
+.markdown-table-scroll { max-width: 100%; }
+.markdown-table { min-width: 520rpx; border: 1rpx solid var(--life-border); border-radius: 12rpx; overflow: hidden; background: var(--life-surface); }
+.markdown-table-row { display: flex; border-top: 1rpx solid var(--life-border); }
+.markdown-table-row:first-child { border-top: 0; }
+.markdown-table-row.header { background: var(--life-primary-soft); font-weight: 700; }
+.markdown-table-cell { flex: 1; min-width: 150rpx; padding: 14rpx 16rpx; border-left: 1rpx solid var(--life-border); color: var(--life-text); font-size: 24rpx; line-height: 1.4; word-break: break-word; }
+.markdown-table-cell:first-child { border-left: 0; }
 .bubble-images {
   display: flex;
   flex-wrap: wrap;
@@ -710,7 +912,7 @@ const removeConversation = async (id) => {
   box-shadow: 0 2rpx 8rpx rgba(36, 49, 31, 0.18);
 }
 .composer {
-  padding: 16rpx 22rpx calc(16rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 22rpx calc(16rpx + var(--bottom-safe-height, 0px) + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 14rpx;

@@ -1,5 +1,5 @@
 <template>
-  <view class="page-navbar">
+  <view class="page-navbar" :style="navbarStyle">
     <view class="page-navbar-inner">
       <view class="nav-left">
         <view class="nav-button" @tap="goBack" aria-label="返回">
@@ -23,6 +23,11 @@ defineProps({
   },
 })
 
+const systemInfo = uni.getSystemInfoSync?.() || {}
+const navbarStyle = {
+  '--status-bar-height': `${Number(systemInfo.statusBarHeight || 0)}px`,
+}
+
 const goBack = () => {
   uni.navigateBack({
     fail: () => {
@@ -43,7 +48,7 @@ const goHome = () => {
   z-index: 10;
   background: var(--life-surface);
   border-bottom: 1rpx solid var(--life-border);
-  padding-top: env(safe-area-inset-top);
+  padding-top: calc(var(--status-bar-height, 0px) + env(safe-area-inset-top));
 }
 .page-navbar-inner {
   height: 88rpx;

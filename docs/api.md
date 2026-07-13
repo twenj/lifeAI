@@ -1,6 +1,6 @@
 # 后端 API 概览
 
-Base URL（开发）：`http://127.0.0.1:8787`  
+Base URL（开发）：`http://113.44.188.18:8787`  
 H5 开发：`/backend` → 同上  
 鉴权：`Authorization: Bearer <token>`（除匿名登录与加入共享）
 

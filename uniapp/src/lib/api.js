@@ -1,7 +1,8 @@
 const TOKEN_KEY = 'lifeai-backend-token'
 const DEVICE_KEY = 'lifeai-device-id'
 let activeChatTask = null
-const configuredBaseUrl = typeof import.meta !== 'undefined' ? (import.meta.env?.VITE_API_BASE_URL || '').trim().replace(/\/$/, '') : ''
+// 由 vite.config.js 在构建时注入，避免 App-Plus 运行时访问 import.meta.env。
+const configuredBaseUrl = typeof __LIFEAI_API_BASE_URL__ !== 'undefined' ? String(__LIFEAI_API_BASE_URL__ || '').trim().replace(/\/$/, '') : ''
 
 const baseUrl = () => {
   // #ifdef H5
@@ -9,7 +10,7 @@ const baseUrl = () => {
   return configuredBaseUrl || '/backend'
   // #endif
   // App/小程序打包时必须配置 HTTPS API 地址；开发环境保留本机 HTTP 回退。
-  return configuredBaseUrl || 'http://127.0.0.1:8787'
+  return configuredBaseUrl || 'http://113.44.188.18:8787'
 }
 
 const getDeviceId = () => {
