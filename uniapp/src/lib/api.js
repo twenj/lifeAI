@@ -94,6 +94,7 @@ export const backendApi = {
   updateSchedule: (id, data) => request(`/v1/schedules/${id}`, { method: 'PATCH', data }),
   deleteSchedule: (id) => request(`/v1/schedules/${id}`, { method: 'DELETE' }),
   recognizeFoodLabel: (images) => request('/v1/food-label/recognize', { method: 'POST', data: { images } }),
+  recognizeAndSaveFoodLabel: (images, name) => request('/v1/food-label/recognize-and-save', { method: 'POST', data: { images, ...(name ? { name } : {}) } }),
   parseReceipt: (images, source = 'other') => request('/v1/receipt/parse', { method: 'POST', data: { images, source } }),
   foodItems: () => request('/v1/food-items'),
   createFoodItem: (data) => request('/v1/food-items', { method: 'POST', data }),

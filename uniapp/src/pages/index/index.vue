@@ -405,16 +405,19 @@ const sendMessage = async () => {
 
     if (shouldTryFoodLabel(content, images)) {
       try {
-        const label = await backendApi.recognizeFoodLabel(images)
         const userFoodName = foodNameFromContent(content)
-        if (userFoodName) label.name = userFoodName.slice(0, 100)
-        else if (!label.name || label.name === '未命名食品') label.name = '未命名食品'
+        const result = await backendApi.recognizeAndSaveFoodLabel(images, userFoodName)
+        if (result.processing) {
+          const assistantMessage = { id: `assistant-${Date.now()}`, role: 'assistant', content: result.content }
+          messages.value = [...allMessages, assistantMessage]
+          scrollIntoView.value = `message-${assistantMessage.id}`
+          upsertCurrentConversation()
+          isLoading.value = false
+          return
+        }
+        const label = result.label
+        const saved = result.saved
         if (isValidFoodLabel(label)) {
-          const saved = await backendApi.createFoodItem({
-            name: label.name,
-            servingSizeG: label.servingSizeG,
-            nutritionPer100g: label.nutritionPer100g,
-          })
           const assistantMessage = {
             id: `assistant-${Date.now()}`,
             role: 'assistant',
