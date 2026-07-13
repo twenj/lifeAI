@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "体重记录",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}

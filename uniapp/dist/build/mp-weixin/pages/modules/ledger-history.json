@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "记账历史",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}

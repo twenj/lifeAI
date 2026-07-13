@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "月度账单",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}

@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "记账",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}

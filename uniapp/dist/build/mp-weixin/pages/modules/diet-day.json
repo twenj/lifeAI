@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "当天饮食",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}

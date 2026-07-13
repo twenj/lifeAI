@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "日程",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "page-navbar": "../../components/PageNavbar"
-  }
-}
