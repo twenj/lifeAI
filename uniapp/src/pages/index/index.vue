@@ -106,12 +106,16 @@
         </view>
       </view>
       <scroll-view class="history-list" scroll-y>
-        <view v-if="!conversations.length" class="history-empty">暂无历史对话</view>
+        <view v-if="historyLoading" class="history-loading">
+          <view class="history-spinner" />
+          <view>正在加载对话…</view>
+        </view>
+        <view v-else-if="!conversations.length" class="history-empty">暂无历史对话</view>
         <view
           v-for="item in conversations"
           :key="item.id"
           class="history-item"
-          :class="{ active: item.id === currentId }"
+          :class="{ active: item.id === currentId, disabled: historyLoading }"
           @tap="openConversation(item.id)"
         >
           <view class="history-item-main">
@@ -162,6 +166,7 @@ const isLoading = ref(false)
 const cancelRequested = ref(false)
 const scrollIntoView = ref('message-welcome')
 const historyVisible = ref(false)
+const historyLoading = ref(false)
 const canSend = computed(() => !isLoading.value && (!!inputValue.value.trim() || pendingImages.value.length > 0))
 
 const ensureBackendLogin = async () => {
@@ -409,7 +414,6 @@ const sendMessage = async () => {
             name: label.name,
             servingSizeG: label.servingSizeG,
             nutritionPer100g: label.nutritionPer100g,
-            sourceImage: images[0],
           })
           const assistantMessage = {
             id: `assistant-${Date.now()}`,
@@ -489,10 +493,13 @@ const openModules = () => {
 }
 
 const closeHistory = () => {
+  if (historyLoading.value) return
   historyVisible.value = false
 }
 
 const openConversation = async (id) => {
+  if (historyLoading.value || isLoading.value) return
+  historyLoading.value = true
   try {
     const target = conversations.value.find((item) => item.id === id)
     if (!target) return
@@ -505,10 +512,13 @@ const openConversation = async (id) => {
     historyVisible.value = false
   } catch (error) {
     uni.showToast({ title: error.message || '会话加载失败', icon: 'none' })
+  } finally {
+    historyLoading.value = false
   }
 }
 
 const removeConversation = async (id) => {
+  if (historyLoading.value || isLoading.value) return
   try {
     await backendApi.deleteConversation(id)
     conversations.value = conversations.value.filter((item) => item.id !== id)
@@ -815,6 +825,9 @@ const removeConversation = async (id) => {
 }
 .history-title { font-size: 32rpx; font-weight: 700; color: var(--life-text); }
 .history-list { flex: 1; min-height: 0; padding: 12rpx 16rpx 24rpx; box-sizing: border-box; }
+.history-loading { display: flex; flex-direction: column; align-items: center; gap: 16rpx; padding: 72rpx 24rpx; color: var(--life-muted); font-size: 26rpx; }
+.history-spinner { width: 42rpx; height: 42rpx; border: 5rpx solid var(--life-primary-soft); border-top-color: var(--life-primary); border-radius: 50%; animation: history-spin .8s linear infinite; }
+@keyframes history-spin { to { transform: rotate(360deg); } }
 .history-empty { padding: 80rpx 24rpx; text-align: center; color: var(--life-muted); font-size: 28rpx; }
 .history-item {
   display: flex;
@@ -825,6 +838,7 @@ const removeConversation = async (id) => {
   margin-bottom: 10rpx;
 }
 .history-item.active { background: var(--life-primary-soft); }
+.history-item.disabled { opacity: .6; pointer-events: none; }
 .history-item-main { flex: 1; min-width: 0; }
 .history-item-title {
   font-size: 28rpx;
