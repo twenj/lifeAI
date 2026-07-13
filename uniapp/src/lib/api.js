@@ -13,6 +13,8 @@ const baseUrl = () => {
   return configuredBaseUrl || 'http://113.44.188.18:8787'
 }
 
+export const backendAssetUrl = (path) => `${baseUrl()}${path}`
+
 const getDeviceId = () => {
   let id = uni.getStorageSync(DEVICE_KEY)
   if (!id) {

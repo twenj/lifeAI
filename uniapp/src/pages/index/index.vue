@@ -27,9 +27,9 @@
               v-for="(src, index) in item.images"
               :key="`${item.id}-${index}`"
               class="bubble-image"
-              :src="src"
+              :src="imageSource(src)"
               mode="aspectFill"
-              @tap="previewImages(item.images, index)"
+              @tap="previewImages(item.images, index, item.previewImages)"
             />
           </view>
             <template v-if="item.content">
@@ -82,7 +82,7 @@
     <view class="composer-wrap">
       <view v-if="pendingImages.length" class="image-preview-row">
         <view v-for="(src, index) in pendingImages" :key="`pending-${index}`" class="image-preview-item">
-          <image class="image-preview" :src="src" mode="aspectFill" @tap="previewImages(pendingImages, index)" />
+          <image class="image-preview" :src="src" mode="aspectFill" @tap="previewImages(pendingImages, index, pendingImagePaths)" />
           <view class="image-remove" @tap.stop="removePendingImage(index)">×</view>
         </view>
       </view>
@@ -155,7 +155,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { backendApi } from '../../lib/api.js'
+import { backendApi, backendAssetUrl } from '../../lib/api.js'
 
 const STORAGE_KEY = 'lifeai-conversations'
 const MAX_IMAGES = 3
@@ -181,6 +181,7 @@ const currentId = ref('')
 const messages = ref([welcome('今天过得怎么样？')])
 const inputValue = ref('')
 const pendingImages = ref([])
+const pendingImagePaths = ref([])
 const receiptSource = ref('other')
 const receiptSourceValues = ['other', 'jd', 'taobao']
 const receiptSourceOptions = ['其他来源（按小票行金额）', '京东（单价 × 数量）', '淘宝（单价 × 数量）']
@@ -413,6 +414,7 @@ const pickImages = () => {
           dataUrls.push(await pathToDataUrl(filePath))
         }
         pendingImages.value = [...pendingImages.value, ...dataUrls].slice(0, MAX_IMAGES)
+        pendingImagePaths.value = [...pendingImagePaths.value, ...paths].slice(0, MAX_IMAGES)
       } catch (error) {
         console.error('pick image failed', error)
         uni.showToast({ title: '图片读取失败', icon: 'none' })
@@ -423,11 +425,12 @@ const pickImages = () => {
 
 const removePendingImage = (index) => {
   pendingImages.value = pendingImages.value.filter((_, i) => i !== index)
+  pendingImagePaths.value = pendingImagePaths.value.filter((_, i) => i !== index)
 }
 
-const previewImages = async (urls, current = 0) => {
+const previewImages = async (urls, current = 0, localUrls = []) => {
   if (!urls?.length) return
-  const previewUrls = [...urls]
+  const previewUrls = urls.map((url, index) => localUrls?.[index] || imageSource(url))
   if (typeof plus !== 'undefined' && uni.getFileSystemManager) {
     const fs = uni.getFileSystemManager()
     await Promise.all(previewUrls.map(async (url, index) => {
@@ -451,6 +454,9 @@ const previewImages = async (urls, current = 0) => {
   }
   uni.previewImage({ urls: previewUrls, current: previewUrls[current] || previewUrls[0], fail: () => uni.showToast({ title: '图片预览失败', icon: 'none' }) })
 }
+
+const imageSource = (src) => String(src || '').startsWith('/v1/uploads/') ? backendAssetUrl(src) : src
+const isStoredImage = (src) => String(src || '').startsWith('/v1/uploads/')
 
 const handleClipboardPaste = async (event) => {
   const items = Array.from(event?.clipboardData?.items || [])
@@ -531,6 +537,7 @@ const confirmLedgerBatch = async (message) => {
 const sendMessage = async () => {
   const content = inputValue.value.trim()
   const images = [...pendingImages.value]
+  const previewImagesForMessage = [...pendingImagePaths.value]
   if ((!content && !images.length) || isLoading.value) return
 
   const userMessage = {
@@ -538,11 +545,13 @@ const sendMessage = async () => {
     role: 'user',
     content,
     images,
+    previewImages: previewImagesForMessage,
   }
   const allMessages = [...messages.value, userMessage]
   messages.value = allMessages
   inputValue.value = ''
   pendingImages.value = []
+  pendingImagePaths.value = []
   imagePurpose.value = 'normal'
   isLoading.value = true
   cancelRequested.value = false
@@ -675,7 +684,11 @@ const openConversation = async (id) => {
     const storedMessages = await backendApi.messages(id)
     currentId.value = target.id
     pendingImages.value = []
-    messages.value = storedMessages.length ? storedMessages : [welcome('今天过得怎么样？')]
+    const normalizedMessages = storedMessages.map((message) => ({
+      ...message,
+      images: Array.isArray(message.images) ? message.images.filter(isStoredImage) : [],
+    }))
+    messages.value = normalizedMessages.length ? normalizedMessages : [welcome('今天过得怎么样？')]
     const last = messages.value[messages.value.length - 1]
     scrollIntoView.value = last ? `message-${last.id}` : 'message-welcome'
     historyVisible.value = false
