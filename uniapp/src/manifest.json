@@ -10,7 +10,7 @@
       "mode": "hash"
     },
     "devServer": {
-      "port": 5173
+      "port": 4000
     }
   },
   "app-plus": {

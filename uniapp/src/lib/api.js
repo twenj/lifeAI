@@ -1,15 +1,15 @@
 const TOKEN_KEY = 'lifeai-backend-token'
 const DEVICE_KEY = 'lifeai-device-id'
 let activeChatTask = null
+const configuredBaseUrl = typeof import.meta !== 'undefined' ? (import.meta.env?.VITE_API_BASE_URL || '').trim().replace(/\/$/, '') : ''
 
 const baseUrl = () => {
   // #ifdef H5
-  return '/backend'
+  // 生产环境可通过 VITE_API_BASE_URL 指向 HTTPS API；未配置时使用同源代理。
+  return configuredBaseUrl || '/backend'
   // #endif
-  // #ifdef MP-WEIXIN
-  return 'http://127.0.0.1:8787'
-  // #endif
-  return 'http://127.0.0.1:8787'
+  // App/小程序打包时必须配置 HTTPS API 地址；开发环境保留本机 HTTP 回退。
+  return configuredBaseUrl || 'http://127.0.0.1:8787'
 }
 
 const getDeviceId = () => {

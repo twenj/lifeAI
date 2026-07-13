@@ -18,7 +18,7 @@
 ### H5
 
 1. 先启动 `lifeAI-backend`。
-2. 执行 `pnpm run dev:h5`，浏览器打开终端提示的本地地址（默认 `http://localhost:5173`）。
+2. 执行 `pnpm run dev:h5`，浏览器打开终端提示的本地地址（默认 `http://localhost:4000`）。
 3. H5 开发态通过 Vite `/backend` 代理请求 Node.js API，API Key 不会打进前端包。
 3. 生产构建：`pnpm run build:h5`，产物在 `uniapp/dist/build/h5`。静态托管时需要自行部署等价的 `/api/chat` 后端；本地可用 `vite preview`（同样挂载了该接口）验证。
 

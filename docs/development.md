@@ -27,7 +27,7 @@ pnpm install
 
 ```bash
 pnpm run dev:h5
-# 浏览器打开 http://localhost:5173
+# 浏览器打开 http://localhost:4000
 # 需先启动后端；请求走 /backend 代理
 ```
 
