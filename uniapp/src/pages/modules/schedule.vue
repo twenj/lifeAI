@@ -52,7 +52,7 @@ const reminderLabel = computed(() => reminderOptions[reminderValues.indexOf(draf
 const repeatText = (value) => repeatOptions[repeatValues.indexOf(value)] || '不重复'
 const formatDateTime = (value) => new Date(value).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const formatTime = (value) => new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-const load = async () => { await backendApi.login(); items.value = await backendApi.schedules(); items.value.forEach(scheduleLocalReminder) }
+const load = async () => { await backendApi.login(); items.value = await backendApi.schedules() }
 const toIso = (date, time) => new Date(`${date}T${time}:00`).toISOString()
 const save = async () => {
   if (!draft.title.trim()) return uni.showToast({ title: '请输入日程标题', icon: 'none' })

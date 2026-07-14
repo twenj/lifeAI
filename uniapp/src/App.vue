@@ -1,6 +1,14 @@
 <script>
+import { backendApi } from './lib/api.js'
+import { scheduleLocalReminder } from './lib/notifications.js'
+
 export default {
-  onLaunch() {},
+  onLaunch() {
+    backendApi.login()
+      .then(() => backendApi.schedules())
+      .then((items) => items.forEach(scheduleLocalReminder))
+      .catch((error) => console.warn('schedule reminders load failed', error))
+  },
 }
 </script>
 
