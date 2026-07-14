@@ -430,7 +430,7 @@ const removePendingImage = (index) => {
 
 const previewImages = async (urls, current = 0, localUrls = []) => {
   if (!urls?.length) return
-  const previewUrls = urls.map((url, index) => localUrls?.[index] || imageSource(url))
+  const previewUrls = urls.map((url, index) => localUrls?.[index] || originalImageSource(url))
   if (typeof plus !== 'undefined' && uni.getFileSystemManager) {
     const fs = uni.getFileSystemManager()
     await Promise.all(previewUrls.map(async (url, index) => {
@@ -456,6 +456,10 @@ const previewImages = async (urls, current = 0, localUrls = []) => {
 }
 
 const imageSource = (src) => String(src || '').startsWith('/v1/uploads/') ? backendAssetUrl(src) : src
+const originalImageSource = (src) => {
+  const value = String(src || '')
+  return imageSource(value.replace('/v1/uploads/thumbs/', '/v1/uploads/originals/'))
+}
 const isStoredImage = (src) => String(src || '').startsWith('/v1/uploads/')
 
 const handleClipboardPaste = async (event) => {
@@ -524,7 +528,9 @@ const saveFoodLabel = async (message) => {
 
 const confirmLedgerBatch = async (message) => {
   try {
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(message.ledgerDate || '') ? message.ledgerDate : new Date().toISOString().slice(0, 10)
+    const now = new Date()
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(message.ledgerDate || '') ? message.ledgerDate : localDate
     const items = message.ledgerBatch.map((entry) => ({ ...entry, description: `${entry.description || entry.category}${Number(entry.quantity) > 1 ? ` ×${entry.quantity}` : ''}`, date }))
     await backendApi.createLedgerBatch(items)
     messages.value = messages.value.map((item) => item.id === message.id ? { ...item, ledgerBatchSaved: true } : item)

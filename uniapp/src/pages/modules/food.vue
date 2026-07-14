@@ -100,7 +100,10 @@ const dietAmountG = ref('')
 const dietSaving = ref(false)
 
 const display = (value) => (value == null ? '--' : Number(value).toFixed(1))
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => {
+  const date = new Date()
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
 
 const filteredItems = computed(() => {
   const q = keyword.value.trim().toLowerCase()

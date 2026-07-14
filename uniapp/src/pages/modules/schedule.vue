@@ -36,7 +36,10 @@ import PageNavbar from '../../components/PageNavbar.vue'
 import { backendApi } from '../../lib/api.js'
 import { scheduleLocalReminder } from '../../lib/notifications.js'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => {
+  const date = new Date()
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
 const items = ref([])
 const repeatValues = ['none', 'daily', 'weekly', 'monthly']
 const repeatOptions = ['不重复', '每天', '每周', '每月']
