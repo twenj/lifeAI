@@ -9,9 +9,25 @@
         </view>
         <view class="editor-body">
           <input v-model="draft.title" class="editor-title-input" placeholder="标题" maxlength="100" />
-          <picker :range="typeOptions" @change="draft.type = typeValues[$event.detail.value]"><view class="type-picker">类型：{{ typeLabel }}</view></picker>
           <textarea v-if="draft.type === 'text'" v-model="draft.content" class="editor-content-input" placeholder="写下你的想法…" maxlength="100000" auto-height />
-          <textarea v-else v-model="draft.itemsText" class="editor-content-input list-editor" placeholder="每行一项，例如：\n买牛奶\n整理房间" maxlength="100000" auto-height />
+          <view v-else class="draft-list-editor">
+            <view class="draft-list-toolbar">
+              <view class="draft-list-tip">勾选已完成，可随时补充清单</view>
+              <view class="draft-add-button" @tap="draftAddVisible = !draftAddVisible">＋ 添加</view>
+            </view>
+            <view v-if="draftAddVisible" class="draft-add-row">
+              <input v-model="draftNewItem" class="draft-add-input" placeholder="输入清单内容" confirm-type="done" @confirm="addDraftItem" />
+              <view class="draft-add-confirm" @tap="addDraftItem">确定</view>
+            </view>
+            <view v-if="draftItems.length" class="draft-item-list">
+              <view v-for="(item, index) in draftItems" :key="index" class="draft-item">
+                <view class="check-box" :class="{ checked: item.done }" @tap="toggleDraftItem(index)">{{ item.done ? '✓' : '' }}</view>
+                <view class="draft-item-text" :class="{ done: item.done }">{{ item.text }}</view>
+                <view class="draft-item-delete" @tap="removeDraftItem(index)">删除</view>
+              </view>
+            </view>
+            <view v-else class="draft-list-empty">还没有清单项，点击右上角“＋ 添加”</view>
+          </view>
           <view class="save-button" :class="{ disabled: saving }" @tap="saveNote">{{ saving ? '保存中…' : '保存笔记' }}</view>
         </view>
       </view>
@@ -33,6 +49,7 @@
               <view class="note-title">{{ note.title }}</view>
               <view v-if="note.type === 'list'" class="note-items">
                 <view v-for="(item, index) in noteItems(note)" :key="index" class="note-item" @tap.stop="toggleItem(note, index)"><view class="check-box" :class="{ checked: item.done }">{{ item.done ? '✓' : '' }}</view><view class="note-item-text" :class="{ done: item.done }">{{ item.text }}</view></view>
+                <view class="list-add-row" @tap.stop><input v-model="newItemText[note.id]" class="list-add-input" placeholder="新增一项" @confirm="addListItem(note)" /><view class="list-add-button" @tap.stop="addListItem(note)">添加</view></view>
               </view>
               <view v-else class="note-content">{{ note.content || '暂无内容' }}</view>
               <view class="note-time">{{ formatTime(note.updatedAt) }}</view>
@@ -47,7 +64,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
 import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
@@ -65,9 +82,12 @@ const saving = ref(false)
 const editorVisible = ref(false)
 const editingId = ref('')
 const draft = reactive({ title: '', content: '', type: 'text', itemsText: '' })
+const draftItems = ref([])
+const draftNewItem = ref('')
+const draftAddVisible = ref(false)
+const newItemText = reactive({})
 const typeValues = ['text', 'list']
 const typeOptions = ['文本', '列表']
-const typeLabel = computed(() => typeOptions[typeValues.indexOf(draft.type)] || '文本')
 
 const formatTime = (value) => {
   const date = new Date(value)
@@ -94,12 +114,17 @@ const loadNotes = async (reset = true) => {
 const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.notes(page.value); notes.value = [...notes.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const startCreate = () => {
-  editingId.value = ''
-  draft.title = ''
-  draft.content = ''
-  draft.type = 'text'
-  draft.itemsText = ''
-  editorVisible.value = true
+  uni.showActionSheet({ itemList: typeOptions, success: ({ tapIndex }) => {
+    editingId.value = ''
+    draft.title = ''
+    draft.content = ''
+    draft.type = typeValues[tapIndex] || 'text'
+    draft.itemsText = ''
+    draftItems.value = []
+    draftNewItem.value = ''
+    draftAddVisible.value = false
+    editorVisible.value = true
+  } })
 }
 
 const startEdit = (note) => {
@@ -107,17 +132,37 @@ const startEdit = (note) => {
   draft.title = note.title
   draft.content = note.content || ''
   draft.type = note.type === 'list' ? 'list' : 'text'
-  draft.itemsText = noteItems(note).map((item) => item.text).join('\n')
+  draftItems.value = noteItems(note).map((item) => ({ text: String(item.text || ''), done: Boolean(item.done) }))
+  draft.itemsText = draftItems.value.map((item) => item.text).join('\n')
+  draftNewItem.value = ''
+  draftAddVisible.value = false
   editorVisible.value = true
 }
 
 const noteItems = (note) => Array.isArray(note.items) ? note.items : []
-const buildItems = () => draft.itemsText.split(/\r?\n/).map((text) => text.trim()).filter(Boolean).slice(0, 200).map((text) => ({ text, done: false }))
+const buildItems = () => draftItems.value.map((item) => ({ text: String(item.text || '').trim(), done: Boolean(item.done) })).filter((item) => item.text).slice(0, 200)
+const addDraftItem = () => {
+  const text = draftNewItem.value.trim()
+  if (!text) return
+  if (draftItems.value.length >= 200) return uni.showToast({ title: '列表最多 200 项', icon: 'none' })
+  draftItems.value.push({ text, done: false })
+  draftNewItem.value = ''
+  draftAddVisible.value = false
+}
+const toggleDraftItem = (index) => { if (draftItems.value[index]) draftItems.value[index].done = !draftItems.value[index].done }
+const removeDraftItem = (index) => { draftItems.value.splice(index, 1) }
 const toggleItem = async (note, index) => {
   const items = noteItems(note).map((item) => ({ ...item }))
   if (!items[index]) return
   items[index].done = !items[index].done
   try { const updated = await backendApi.updateNote(note.id, { items, type: 'list' }); Object.assign(note, updated) } catch (error) { uni.showToast({ title: error.message || '更新失败', icon: 'none' }) }
+}
+const addListItem = async (note) => {
+  const text = String(newItemText[note.id] || '').trim()
+  if (!text) return
+  const items = [...noteItems(note).map((item) => ({ ...item })), { text, done: false }]
+  if (items.length > 200) return uni.showToast({ title: '列表最多 200 项', icon: 'none' })
+  try { const updated = await backendApi.updateNote(note.id, { items, type: 'list' }); Object.assign(note, updated); newItemText[note.id] = '' } catch (error) { uni.showToast({ title: error.message || '添加失败', icon: 'none' }) }
 }
 
 const closeEditor = () => {
@@ -188,6 +233,9 @@ onMounted(loadNotes)
 .check-box.checked { background: var(--life-primary); }
 .note-item-text { flex: 1; min-width: 0; color: var(--life-text); font-size: 27rpx; word-break: break-word; }
 .note-item-text.done { color: var(--life-muted); text-decoration: line-through; }
+.list-add-row { display: flex; align-items: center; gap: 12rpx; margin-top: 10rpx; padding-top: 12rpx; border-top: 1rpx solid var(--life-border); }
+.list-add-input { flex: 1; min-width: 0; height: 64rpx; padding: 0 16rpx; border-radius: 14rpx; background: var(--life-surface-soft); color: var(--life-text); font-size: 25rpx; }
+.list-add-button { flex: none; padding: 14rpx 20rpx; border-radius: 14rpx; background: var(--life-primary-soft); color: var(--life-primary-deep); font-size: 24rpx; }
 .note-time { margin-top: 14rpx; font-size: 22rpx; color: var(--life-muted); }
 .delete-button { flex: none; padding: 12rpx; color: #b97970; font-size: 24rpx; }
 .editor-page { min-height: 100vh; background: var(--life-bg); }
@@ -200,7 +248,19 @@ onMounted(loadNotes)
 .type-picker { margin-top: 18rpx; padding: 18rpx 20rpx; border-radius: 16rpx; background: var(--life-surface-soft); color: var(--life-primary-deep); font-size: 28rpx; }
 .editor-title-input { height: 78rpx; padding: 0 20rpx; }
 .editor-content-input { min-height: 520rpx; max-height: none; margin-top: 18rpx; padding: 18rpx 20rpx; line-height: 1.5; }
-.list-editor { min-height: 360rpx; }
+.draft-list-editor { margin-top: 18rpx; padding: 22rpx 20rpx; border-radius: 18rpx; background: var(--life-surface-soft); }
+.draft-list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.draft-list-tip { flex: 1; color: var(--life-muted); font-size: 25rpx; }
+.draft-add-button { flex: none; padding: 14rpx 20rpx; border-radius: 16rpx; background: var(--life-primary); color: #fff; font-size: 26rpx; }
+.draft-add-row { display: flex; align-items: center; gap: 12rpx; margin-top: 18rpx; padding-top: 16rpx; border-top: 1rpx solid var(--life-border); }
+.draft-add-input { flex: 1; min-width: 0; height: 68rpx; padding: 0 16rpx; border-radius: 14rpx; background: var(--life-surface); color: var(--life-text); font-size: 26rpx; }
+.draft-add-confirm { flex: none; padding: 16rpx 20rpx; border-radius: 14rpx; background: var(--life-primary-soft); color: var(--life-primary-deep); font-size: 25rpx; }
+.draft-item-list { margin-top: 14rpx; }
+.draft-item { display: flex; align-items: center; gap: 14rpx; min-height: 72rpx; padding: 10rpx 0; border-bottom: 1rpx solid var(--life-border); }
+.draft-item-text { flex: 1; min-width: 0; color: var(--life-text); font-size: 28rpx; word-break: break-word; }
+.draft-item-text.done { color: var(--life-muted); text-decoration: line-through; }
+.draft-item-delete { flex: none; color: #b97970; font-size: 23rpx; }
+.draft-list-empty { padding: 48rpx 12rpx 34rpx; text-align: center; color: var(--life-muted); font-size: 25rpx; }
 .save-button { margin-top: 22rpx; padding: 22rpx; border-radius: 18rpx; text-align: center; background: var(--life-primary); color: #fff; font-size: 29rpx; }
 .save-button.disabled { opacity: .55; }
 </style>
