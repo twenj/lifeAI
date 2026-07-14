@@ -97,12 +97,12 @@ const todayTotal = computed(() => todayRecords.value.reduce((sum, item) => ({
 
 const calculatedCalories = computed(() => (
   selectedFood.value?.caloriesPer100g != null && Number(draft.amountG) > 0
-    ? selectedFood.value.caloriesPer100g * Number(draft.amountG) / 100
+    ? selectedFood.value.caloriesPer100g * Number(draft.amountG) / (Number(selectedFood.value.servingSizeG) > 0 ? Number(selectedFood.value.servingSizeG) : 100)
     : null
 ))
 const calculatedProtein = computed(() => (
   selectedFood.value?.proteinGPer100g != null && Number(draft.amountG) > 0
-    ? selectedFood.value.proteinGPer100g * Number(draft.amountG) / 100
+    ? selectedFood.value.proteinGPer100g * Number(draft.amountG) / (Number(selectedFood.value.servingSizeG) > 0 ? Number(selectedFood.value.servingSizeG) : 100)
     : null
 ))
 

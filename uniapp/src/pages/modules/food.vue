@@ -120,7 +120,8 @@ const dietEstimate = computed(() => {
   const amount = Number(dietAmountG.value)
   const food = dietTarget.value
   if (!food || !(amount > 0)) return ''
-  const ratio = amount / 100
+  const baseG = Number(food.servingSizeG) > 0 ? Number(food.servingSizeG) : 100
+  const ratio = amount / baseG
   const parts = []
   if (food.caloriesPer100g != null) parts.push(`${(food.caloriesPer100g * ratio).toFixed(1)} kcal`)
   if (food.proteinGPer100g != null) parts.push(`蛋白质 ${(food.proteinGPer100g * ratio).toFixed(1)}g`)
@@ -214,7 +215,8 @@ const remove = (item) => {
 
 const openDietSheet = (item) => {
   dietTarget.value = item
-  dietAmountG.value = item.servingSizeG ? String(item.servingSizeG) : ''
+  // 有包装份量时，库内营养值代表“每份”，默认带入一份；没有份量信息时才按 100g。
+  dietAmountG.value = item.servingSizeG ? String(item.servingSizeG) : '100'
   dietVisible.value = true
 }
 

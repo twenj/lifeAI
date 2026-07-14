@@ -29,7 +29,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import QRCode from 'qrcode'
+import QRCode from '../../lib/qrcode.js'
 import PageNavbar from '../../components/PageNavbar.vue'
 import { backendApi } from '../../lib/api.js'
 
@@ -46,7 +46,8 @@ const parseShareCode = (raw) => {
 }
 
 const makeQr = async (code) => {
-  qrDataUrl.value = await QRCode.toDataURL(`lifeai-share://${code}`, { width: 420, margin: 2, errorCorrectionLevel: 'M' })
+  const svg = await QRCode.toString(`lifeai-share://${code}`, { type: 'svg', width: 8, margin: 2, errorCorrectionLevel: 'M' })
+  qrDataUrl.value = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
 const generate = async () => {
