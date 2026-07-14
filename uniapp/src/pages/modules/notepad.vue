@@ -9,7 +9,9 @@
         </view>
         <view class="editor-body">
           <input v-model="draft.title" class="editor-title-input" placeholder="标题" maxlength="100" />
-          <textarea v-model="draft.content" class="editor-content-input" placeholder="写下你的想法…" maxlength="100000" auto-height />
+          <picker :range="typeOptions" @change="draft.type = typeValues[$event.detail.value]"><view class="type-picker">类型：{{ typeLabel }}</view></picker>
+          <textarea v-if="draft.type === 'text'" v-model="draft.content" class="editor-content-input" placeholder="写下你的想法…" maxlength="100000" auto-height />
+          <textarea v-else v-model="draft.itemsText" class="editor-content-input list-editor" placeholder="每行一项，例如：\n买牛奶\n整理房间" maxlength="100000" auto-height />
           <view class="save-button" :class="{ disabled: saving }" @tap="saveNote">{{ saving ? '保存中…' : '保存笔记' }}</view>
         </view>
       </view>
@@ -29,7 +31,10 @@
           <view v-for="note in notes" :key="note.id" class="note-card" @tap="startEdit(note)">
             <view class="note-main">
               <view class="note-title">{{ note.title }}</view>
-              <view class="note-content">{{ note.content || '暂无内容' }}</view>
+              <view v-if="note.type === 'list'" class="note-items">
+                <view v-for="(item, index) in noteItems(note)" :key="index" class="note-item" @tap.stop="toggleItem(note, index)"><view class="check-box" :class="{ checked: item.done }">{{ item.done ? '✓' : '' }}</view><view class="note-item-text" :class="{ done: item.done }">{{ item.text }}</view></view>
+              </view>
+              <view v-else class="note-content">{{ note.content || '暂无内容' }}</view>
               <view class="note-time">{{ formatTime(note.updatedAt) }}</view>
             </view>
             <view class="delete-button" @tap.stop="removeNote(note)">删除</view>
@@ -42,7 +47,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
 import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
@@ -59,7 +64,10 @@ const hasMore = ref(false)
 const saving = ref(false)
 const editorVisible = ref(false)
 const editingId = ref('')
-const draft = reactive({ title: '', content: '' })
+const draft = reactive({ title: '', content: '', type: 'text', itemsText: '' })
+const typeValues = ['text', 'list']
+const typeOptions = ['文本', '列表']
+const typeLabel = computed(() => typeOptions[typeValues.indexOf(draft.type)] || '文本')
 
 const formatTime = (value) => {
   const date = new Date(value)
@@ -89,6 +97,8 @@ const startCreate = () => {
   editingId.value = ''
   draft.title = ''
   draft.content = ''
+  draft.type = 'text'
+  draft.itemsText = ''
   editorVisible.value = true
 }
 
@@ -96,7 +106,18 @@ const startEdit = (note) => {
   editingId.value = note.id
   draft.title = note.title
   draft.content = note.content || ''
+  draft.type = note.type === 'list' ? 'list' : 'text'
+  draft.itemsText = noteItems(note).map((item) => item.text).join('\n')
   editorVisible.value = true
+}
+
+const noteItems = (note) => Array.isArray(note.items) ? note.items : []
+const buildItems = () => draft.itemsText.split(/\r?\n/).map((text) => text.trim()).filter(Boolean).slice(0, 200).map((text) => ({ text, done: false }))
+const toggleItem = async (note, index) => {
+  const items = noteItems(note).map((item) => ({ ...item }))
+  if (!items[index]) return
+  items[index].done = !items[index].done
+  try { const updated = await backendApi.updateNote(note.id, { items, type: 'list' }); Object.assign(note, updated) } catch (error) { uni.showToast({ title: error.message || '更新失败', icon: 'none' }) }
 }
 
 const closeEditor = () => {
@@ -105,17 +126,20 @@ const closeEditor = () => {
 
 const saveNote = async () => {
   const title = draft.title.trim()
-  const content = draft.content.trim()
+  const content = draft.type === 'text' ? draft.content.trim() : ''
+  const items = draft.type === 'list' ? buildItems() : undefined
   if (!title) {
     uni.showToast({ title: '请填写标题', icon: 'none' })
     return
   }
+  if (draft.type === 'list' && !items.length) return uni.showToast({ title: '请至少填写一项', icon: 'none' })
   saving.value = true
   try {
+    const payload = { title, content, type: draft.type, ...(items ? { items } : {}) }
     if (editingId.value) {
-      await backendApi.updateNote(editingId.value, { title, content })
+      await backendApi.updateNote(editingId.value, payload)
     } else {
-      await backendApi.createNote({ title, content })
+      await backendApi.createNote(payload)
     }
     editorVisible.value = false
     await loadNotes()
@@ -158,6 +182,12 @@ onMounted(loadNotes)
 .note-main { flex: 1; min-width: 0; }
 .note-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 32rpx; font-weight: 700; color: var(--life-text); }
 .note-content { margin-top: 12rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 27rpx; color: var(--life-muted); }
+.note-items { margin-top: 12rpx; }
+.note-item { display: flex; align-items: center; gap: 14rpx; padding: 10rpx 0; }
+.check-box { flex: none; width: 34rpx; height: 34rpx; border: 2rpx solid var(--life-primary); border-radius: 8rpx; color: #fff; text-align: center; line-height: 34rpx; font-size: 24rpx; }
+.check-box.checked { background: var(--life-primary); }
+.note-item-text { flex: 1; min-width: 0; color: var(--life-text); font-size: 27rpx; word-break: break-word; }
+.note-item-text.done { color: var(--life-muted); text-decoration: line-through; }
 .note-time { margin-top: 14rpx; font-size: 22rpx; color: var(--life-muted); }
 .delete-button { flex: none; padding: 12rpx; color: #b97970; font-size: 24rpx; }
 .editor-page { min-height: 100vh; background: var(--life-bg); }
@@ -167,8 +197,10 @@ onMounted(loadNotes)
 .editor-navbar-placeholder { width: 160rpx; }
 .editor-body { padding: 32rpx 28rpx calc(60rpx + env(safe-area-inset-bottom)); }
 .editor-title-input, .editor-content-input { box-sizing: border-box; width: 100%; border-radius: 16rpx; background: var(--life-surface-soft); color: var(--life-text); font-size: 29rpx; }
+.type-picker { margin-top: 18rpx; padding: 18rpx 20rpx; border-radius: 16rpx; background: var(--life-surface-soft); color: var(--life-primary-deep); font-size: 28rpx; }
 .editor-title-input { height: 78rpx; padding: 0 20rpx; }
 .editor-content-input { min-height: 520rpx; max-height: none; margin-top: 18rpx; padding: 18rpx 20rpx; line-height: 1.5; }
+.list-editor { min-height: 360rpx; }
 .save-button { margin-top: 22rpx; padding: 22rpx; border-radius: 18rpx; text-align: center; background: var(--life-primary); color: #fff; font-size: 29rpx; }
 .save-button.disabled { opacity: .55; }
 </style>
