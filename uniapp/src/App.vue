@@ -7,7 +7,7 @@ export default {
     initLocalPush()
     backendApi.login()
       .then(() => backendApi.schedules())
-      .then((items) => items.forEach(scheduleLocalReminder))
+      .then((result) => (result.items || []).forEach(scheduleLocalReminder))
       .catch((error) => console.warn('schedule reminders load failed', error))
   },
 }

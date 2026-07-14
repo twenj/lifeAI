@@ -26,6 +26,7 @@
         </view>
         <view class="actions"><view class="edit" @tap="edit(item)">编辑</view><view class="complete" @tap="toggle(item)">{{ item.completed ? '已完成' : '完成' }}</view><view class="delete" @tap="remove(item)">删除</view></view>
       </view>
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
   </view>
 </template>
@@ -34,6 +35,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 import { scheduleLocalReminder } from '../../lib/notifications.js'
 
@@ -42,6 +44,9 @@ const today = () => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 const items = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 const repeatValues = ['none', 'daily', 'weekly', 'monthly']
 const repeatOptions = ['不重复', '每天', '每周', '每月']
 const reminderValues = [null, 10, 30, 60]
@@ -53,7 +58,8 @@ const reminderLabel = computed(() => reminderOptions[reminderValues.indexOf(draf
 const repeatText = (value) => repeatOptions[repeatValues.indexOf(value)] || '不重复'
 const formatDateTime = (value) => new Date(value).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const formatTime = (value) => new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-const load = async () => { await backendApi.login(); items.value = await backendApi.schedules() }
+const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.schedules(page.value); items.value = result.items; hasMore.value = result.hasMore }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.schedules(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 const timeAfterOneHour = (value) => {
   const [hour, minute] = String(value || '09:00').split(':').map(Number)
   const total = ((hour * 60 + minute + 60) % 1440 + 1440) % 1440

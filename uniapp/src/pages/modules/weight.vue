@@ -24,6 +24,7 @@
         </view>
         <view class="delete" @tap="remove(item)">删除</view>
       </view>
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
   </view>
 </template>
@@ -31,6 +32,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -44,6 +46,9 @@ const nowTime = () => {
 }
 
 const records = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 const draft = reactive({ date: today(), time: nowTime(), weightKg: '', note: '' })
 
 const formatDateTime = (item) => {
@@ -68,8 +73,12 @@ const buildRecordedAt = (dateText, timeText) => {
 
 const load = async () => {
   await backendApi.login()
-  records.value = await backendApi.weights()
+  page.value = 1
+  const result = await backendApi.weights(page.value)
+  records.value = result.items
+  hasMore.value = result.hasMore
 }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.weights(page.value); records.value = [...records.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const save = async () => {
   const weightKg = Number(draft.weightKg)

@@ -16,6 +16,7 @@
           <view class="row"><view class="primary-button" @tap="save(item)">保存修改</view><view class="secondary-button" @tap="cancel">取消</view></view>
         </view>
       </view>
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
   </view>
 </template>
@@ -23,13 +24,18 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const items = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 const editingId = ref('')
 const editDraft = reactive({ title: '', content: '' })
 const formatDate = (value) => new Date(value).toLocaleString('zh-CN')
-const load = async () => { await backendApi.login(); items.value = await backendApi.journals() }
+const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.journals(page.value); items.value = result.items; hasMore.value = result.hasMore }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.journals(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 const startEdit = (item) => { editingId.value = item.id; editDraft.title = item.title; editDraft.content = item.content }
 const cancel = () => { editingId.value = ''; editDraft.title = ''; editDraft.content = '' }
 const save = async (item) => {

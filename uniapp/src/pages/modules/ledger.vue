@@ -48,6 +48,7 @@
           <view class="delete" @tap="remove(item)">删除</view>
         </view>
       </view>
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
   </view>
 </template>
@@ -56,6 +57,7 @@
 import { computed, reactive, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const today = () => {
@@ -69,6 +71,9 @@ const currentMonth = () => {
 }
 
 const records = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 const draft = reactive({ type: 'expense', date: today(), amount: '', category: '', description: '' })
 
 const monthLabel = computed(() => {
@@ -87,8 +92,12 @@ const formatDate = (value) => new Date(value).toLocaleDateString('zh-CN')
 
 const load = async () => {
   await backendApi.login()
-  records.value = await backendApi.ledger(currentMonth())
+  page.value = 1
+  const result = await backendApi.ledger(currentMonth(), page.value)
+  records.value = result.items
+  hasMore.value = result.hasMore
 }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.ledger(currentMonth(), page.value); records.value = [...records.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const save = async () => {
   const amount = Number(draft.amount)

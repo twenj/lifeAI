@@ -11,6 +11,7 @@
         </view>
         <view class="day-arrow">›</view>
       </view>
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
   </view>
 </template>
@@ -19,9 +20,13 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const records = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 
 const dayKey = (value) => {
   const date = new Date(value)
@@ -50,8 +55,12 @@ const days = computed(() => {
 
 const load = async () => {
   await backendApi.login()
-  records.value = await backendApi.foods()
+  page.value = 1
+  const result = await backendApi.foods(page.value)
+  records.value = result.items
+  hasMore.value = result.hasMore
 }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.foods(page.value); records.value = [...records.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const openDay = (date) => uni.navigateTo({ url: `/pages/modules/diet-day?date=${encodeURIComponent(date)}` })
 

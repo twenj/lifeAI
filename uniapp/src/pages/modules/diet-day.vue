@@ -77,7 +77,7 @@ const total = computed(() => dayRecords.value.reduce((sum, item) => ({
 
 const load = async () => {
   await backendApi.login()
-  records.value = await backendApi.foods()
+  records.value = (await backendApi.foods(1, 50)).items
 }
 
 const openEdit = (item) => {

@@ -57,6 +57,7 @@
         </view>
         <view v-if="item.servingSizeG" class="source">包装标注每份 {{ item.servingSizeG }}g</view>
       </view>
+      <PaginationFooter :has-more="hasMore && !keyword.trim()" :loading="loadingMore" @load-more="loadMore" />
     </view>
 
     <view v-if="dietVisible" class="sheet-mask" @tap="closeDietSheet" />
@@ -76,9 +77,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const items = ref([])
+const page = ref(1)
+const hasMore = ref(false)
+const loadingMore = ref(false)
 const keyword = ref('')
 const editingId = ref('')
 const emptyDraft = () => ({
@@ -124,8 +129,12 @@ const dietEstimate = computed(() => {
 
 const load = async () => {
   await backendApi.login()
-  items.value = await backendApi.foodItems()
+  page.value = 1
+  const result = await backendApi.foodItems(page.value)
+  items.value = result.items
+  hasMore.value = result.hasMore
 }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value || keyword.value.trim()) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.foodItems(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const numberOrNull = (value) => (value === '' || value == null ? null : Number(value))
 const reset = () => {

@@ -63,7 +63,7 @@ const formatDate = (value) => new Date(value).toLocaleDateString('zh-CN')
 const load = async () => {
   if (!month.value) return
   await backendApi.login()
-  records.value = await backendApi.ledger(month.value)
+  records.value = (await backendApi.ledger(month.value, 1, 50)).items
 }
 
 const remove = (item) => {

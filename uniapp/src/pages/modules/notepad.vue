@@ -34,6 +34,7 @@
             </view>
             <view class="delete-button" @tap.stop="removeNote(note)">删除</view>
           </view>
+          <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
         </view>
       </view>
     </template>
@@ -43,6 +44,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
+import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
 
 const notes = ref([])
@@ -51,6 +53,9 @@ const pageInsets = {
   '--status-bar-height': `${Number(systemInfo.statusBarHeight || 0)}px`,
 }
 const loading = ref(false)
+const loadingMore = ref(false)
+const page = ref(1)
+const hasMore = ref(false)
 const saving = ref(false)
 const editorVisible = ref(false)
 const editingId = ref('')
@@ -62,17 +67,23 @@ const formatTime = (value) => {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-const loadNotes = async () => {
+const loadNotes = async (reset = true) => {
+  if (loadingMore.value) return
+  if (reset) { page.value = 1; hasMore.value = false }
   loading.value = true
   try {
     await backendApi.login()
-    notes.value = await backendApi.notes()
+    const result = await backendApi.notes(page.value)
+    notes.value = reset ? result.items : [...notes.value, ...result.items]
+    hasMore.value = result.hasMore
   } catch (error) {
     uni.showToast({ title: error.message || '笔记加载失败', icon: 'none' })
   } finally {
     loading.value = false
   }
 }
+
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.notes(page.value); notes.value = [...notes.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 
 const startCreate = () => {
   editingId.value = ''

@@ -1,6 +1,6 @@
 # Project
 
-小日子 AI（Life AI）：uni-app（Vue 3 + Vite）生活助手，支持微信小程序与 H5；后端为同级目录的 Node.js 服务。
+拾光AI：uni-app（Vue 3 + Vite）生活助手，支持微信小程序与 H5；后端为同级目录的 Node.js 服务。
 
 ## 目标
 - AI 对话（文字 + 图片）+ 关键词触发自动入库

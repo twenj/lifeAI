@@ -115,8 +115,8 @@ const selectFood = (event) => {
 const load = async () => {
   await backendApi.login()
   const result = await Promise.all([backendApi.foods(), backendApi.foodItems()])
-  records.value = result[0]
-  foodItems.value = result[1]
+  records.value = result[0].items
+  foodItems.value = result[1].items
 }
 
 const save = async () => {

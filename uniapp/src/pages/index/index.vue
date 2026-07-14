@@ -2,7 +2,7 @@
   <view class="chat-page" :style="pageInsets">
     <view class="chat-header">
       <view>
-        <view class="chat-title">小日子 AI</view>
+        <view class="chat-title">拾光AI</view>
         <view class="chat-subtitle">你的随身智能助手</view>
       </view>
       <view class="header-actions">
@@ -483,7 +483,7 @@ const downloadPreviewImage = async () => {
   if (typeof document !== 'undefined' && !url.startsWith('file://')) {
     const link = document.createElement('a')
     link.href = url
-    link.download = `小日子AI-${Date.now()}.jpg`
+    link.download = `拾光AI-${Date.now()}.jpg`
     link.click()
     uni.showToast({ title: '开始下载', icon: 'success' })
     return
