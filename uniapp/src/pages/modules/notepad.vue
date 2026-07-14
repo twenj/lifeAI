@@ -150,7 +150,7 @@ onMounted(loadNotes)
 .note-time { margin-top: 14rpx; font-size: 22rpx; color: var(--life-muted); }
 .delete-button { flex: none; padding: 12rpx; color: #b97970; font-size: 24rpx; }
 .editor-page { min-height: 100vh; background: var(--life-bg); }
-.editor-navbar { display: flex; align-items: center; justify-content: space-between; height: calc(88rpx + var(--status-bar-height, 0px) + env(safe-area-inset-top)); padding: calc(var(--status-bar-height, 0px) + env(safe-area-inset-top)) 24rpx 0; box-sizing: border-box; background: var(--life-surface); border-bottom: 1rpx solid var(--life-border); }
+.editor-navbar { display: flex; align-items: center; justify-content: space-between; height: calc(88rpx + var(--status-bar-height, 0px)); padding: var(--status-bar-height, 0px) 24rpx 0; box-sizing: border-box; background: var(--life-surface); border-bottom: 1rpx solid var(--life-border); }
 .editor-back { width: 160rpx; color: var(--life-primary-deep); font-size: 28rpx; }
 .editor-navbar-title { flex: 1; text-align: center; color: var(--life-text); font-size: 32rpx; font-weight: 700; }
 .editor-navbar-placeholder { width: 160rpx; }

@@ -48,7 +48,8 @@ const goHome = () => {
   z-index: 10;
   background: var(--life-surface);
   border-bottom: 1rpx solid var(--life-border);
-  padding-top: calc(var(--status-bar-height, 0px) + env(safe-area-inset-top));
+  /* App-Plus 已经提供状态栏高度，避免与 env() 重复叠加 */
+  padding-top: var(--status-bar-height, 0px);
 }
 .page-navbar-inner {
   height: 88rpx;

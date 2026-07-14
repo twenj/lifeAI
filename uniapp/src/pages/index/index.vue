@@ -778,8 +778,9 @@ const removeConversation = async (id) => {
   background: var(--life-bg);
 }
 .chat-header {
-  padding: 42rpx 32rpx 26rpx;
-  padding-top: calc(42rpx + var(--status-bar-height, 0px) + env(safe-area-inset-top));
+  /* App-Plus 已经通过 statusBarHeight 提供顶部安全区，避免再叠加 env() 造成 iPhone 顶部留白过大 */
+  padding: 24rpx 32rpx 26rpx;
+  padding-top: calc(24rpx + var(--status-bar-height, 0px));
   background: var(--life-surface);
   display: flex;
   justify-content: space-between;
@@ -970,7 +971,8 @@ const removeConversation = async (id) => {
   box-shadow: 0 2rpx 8rpx rgba(36, 49, 31, 0.18);
 }
 .composer {
-  padding: 16rpx 22rpx calc(16rpx + var(--bottom-safe-height, 0px) + env(safe-area-inset-bottom));
+  /* 底部安全区由系统信息变量统一提供，避免 iPhone 底部留白翻倍 */
+  padding: 16rpx 22rpx calc(16rpx + var(--bottom-safe-height, 0px));
   display: flex;
   align-items: center;
   gap: 14rpx;
