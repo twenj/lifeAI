@@ -32,6 +32,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import PageNavbar from '../../components/PageNavbar.vue'
 import { backendApi } from '../../lib/api.js'
 import { scheduleLocalReminder } from '../../lib/notifications.js'
@@ -51,7 +52,7 @@ const reminderLabel = computed(() => reminderOptions[reminderValues.indexOf(draf
 const repeatText = (value) => repeatOptions[repeatValues.indexOf(value)] || '不重复'
 const formatDateTime = (value) => new Date(value).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const formatTime = (value) => new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-const load = async () => { await backendApi.login(); items.value = await backendApi.schedules() }
+const load = async () => { await backendApi.login(); items.value = await backendApi.schedules(); items.value.forEach(scheduleLocalReminder) }
 const toIso = (date, time) => new Date(`${date}T${time}:00`).toISOString()
 const save = async () => {
   if (!draft.title.trim()) return uni.showToast({ title: '请输入日程标题', icon: 'none' })
@@ -64,6 +65,7 @@ const save = async () => {
 const toggle = async (item) => { try { const updated = await backendApi.updateSchedule(item.id, { completed: !item.completed }); item.completed = updated.completed } catch (error) { uni.showToast({ title: error.message || '更新失败', icon: 'none' }) } }
 const remove = (item) => uni.showModal({ title: '删除日程', content: '确定删除这条日程吗？', success: async ({ confirm }) => { if (!confirm) return; try { await backendApi.deleteSchedule(item.id); items.value = items.value.filter((row) => row.id !== item.id) } catch (error) { uni.showToast({ title: error.message || '删除失败', icon: 'none' }) } } })
 onMounted(() => load().catch((error) => uni.showToast({ title: error.message || '加载失败', icon: 'none' })))
+onShow(() => load().catch(() => undefined))
 </script>
 
 <style scoped>
