@@ -150,6 +150,16 @@
         </view>
       </scroll-view>
     </view>
+
+    <view v-if="previewVisible" class="image-preview-mask" @tap="closeImagePreview">
+      <view class="image-preview-dialog" @tap.stop>
+        <image class="image-preview-large" :src="previewUrl" mode="aspectFit" />
+        <view class="image-preview-actions">
+          <view class="image-preview-close" @tap="closeImagePreview">关闭</view>
+          <view class="image-preview-download" @tap="downloadPreviewImage">下载图片</view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -195,6 +205,9 @@ const cancelRequested = ref(false)
 const scrollIntoView = ref('message-welcome')
 const historyVisible = ref(false)
 const historyLoading = ref(false)
+const previewVisible = ref(false)
+const previewUrl = ref('')
+const previewDownloadUrl = ref('')
 const canSend = computed(() => !isLoading.value && (!!inputValue.value.trim() || pendingImages.value.length > 0))
 
 const ensureBackendLogin = async () => {
@@ -452,13 +465,39 @@ const previewImages = async (urls, current = 0, localUrls = []) => {
     uni.showToast({ title: '图片预览失败，请重新上传', icon: 'none' })
     return
   }
-  uni.previewImage({ urls: previewUrls, current: previewUrls[current] || previewUrls[0], fail: () => uni.showToast({ title: '图片预览失败', icon: 'none' }) })
+  previewUrl.value = previewUrls[current] || previewUrls[0]
+  previewDownloadUrl.value = previewUrl.value
+  previewVisible.value = true
 }
 
 const imageSource = (src) => String(src || '').startsWith('/v1/uploads/') ? backendAssetUrl(src) : src
 const originalImageSource = (src) => {
   const value = String(src || '')
   return imageSource(value.replace('/v1/uploads/thumbs/', '/v1/uploads/originals/'))
+}
+const closeImagePreview = () => { previewVisible.value = false }
+const downloadPreviewImage = async () => {
+  const url = previewDownloadUrl.value
+  if (!url) return
+  // H5：使用浏览器下载；App-Plus：下载后保存到系统相册。
+  if (typeof document !== 'undefined' && !url.startsWith('file://')) {
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `小日子AI-${Date.now()}.jpg`
+    link.click()
+    uni.showToast({ title: '开始下载', icon: 'success' })
+    return
+  }
+  const save = (filePath) => uni.saveImageToPhotosAlbum({
+    filePath,
+    success: () => uni.showToast({ title: '已保存到相册', icon: 'success' }),
+    fail: () => uni.showToast({ title: '保存失败，请授予相册权限', icon: 'none' }),
+  })
+  if (/^https?:\/\//.test(url)) {
+    uni.downloadFile({ url, success: ({ tempFilePath }) => save(tempFilePath), fail: () => uni.showToast({ title: '图片下载失败', icon: 'none' }) })
+  } else {
+    save(url)
+  }
 }
 const isStoredImage = (src) => String(src || '').startsWith('/v1/uploads/')
 
@@ -1079,4 +1118,11 @@ const removeConversation = async (id) => {
   align-items: center;
   justify-content: center;
 }
+.image-preview-mask { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .86); }
+.image-preview-dialog { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.image-preview-large { width: 100%; height: calc(100% - 150rpx); }
+.image-preview-actions { display: flex; align-items: center; gap: 20rpx; padding: 24rpx 28rpx calc(24rpx + env(safe-area-inset-bottom)); }
+.image-preview-close, .image-preview-download { min-width: 150rpx; padding: 16rpx 24rpx; border-radius: 999rpx; text-align: center; font-size: 26rpx; }
+.image-preview-close { background: rgba(255, 255, 255, .16); color: rgba(255, 255, 255, .86); }
+.image-preview-download { background: var(--life-primary); color: #fff; }
 </style>
