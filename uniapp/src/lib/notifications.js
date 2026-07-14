@@ -1,5 +1,16 @@
 // App 端使用 plus.push 创建本地提醒；H5 和小程序环境会被编译为 no-op。
 const scheduledIds = new Set()
+export function initLocalPush() {
+  // #ifdef APP-PLUS
+  const push = globalThis.plus?.push
+  if (!push) return false
+  // 访问客户端信息会触发 iOS 首次运行时的通知权限初始化；Android 无需额外处理。
+  try { push.getClientInfo?.() } catch (error) { console.warn('push init failed', error) }
+  return true
+  // #endif
+  return false
+}
+
 export function scheduleLocalReminder(schedule) {
   // #ifdef APP-PLUS
   const push = globalThis.plus?.push

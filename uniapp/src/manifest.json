@@ -15,6 +15,9 @@
     },
     "app-plus" : {
         "usingComponents" : true,
+        "modules" : {
+            "Push" : {}
+        },
         "distribute" : {
             "icons" : {
                 "android" : {

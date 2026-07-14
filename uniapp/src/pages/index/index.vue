@@ -47,7 +47,7 @@
                   </scroll-view>
                 </view>
                 <view v-else-if="segment.type === 'heading'" class="markdown-heading" :class="`heading-${segment.level}`"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
-                <view v-else-if="segment.type === 'list'" class="markdown-list-item"><text selectable class="markdown-list-marker">{{ segment.marker }}</text><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
+                <view v-else-if="segment.type === 'list'" class="markdown-list-item"><text selectable class="markdown-list-marker">{{ segment.marker }}</text><text selectable class="markdown-list-content"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></text></view>
                 <view v-else-if="segment.type === 'quote'" class="markdown-quote"><text selectable v-for="(part, partIndex) in inlineParts(segment.content)" :key="partIndex" :class="`inline-${part.type}`">{{ part.text }}</text></view>
                 <text selectable v-else-if="segment.type === 'code'" class="markdown-code">{{ segment.content }}</text>
                 <view v-else-if="segment.type === 'hr'" class="markdown-hr" />
@@ -848,6 +848,8 @@ const removeConversation = async (id) => {
 }
 .user .avatar { background: var(--life-primary-deep); }
 .message-bubble {
+  box-sizing: border-box;
+  min-width: 0;
   max-width: 76%;
   margin-left: 16rpx;
   padding: 20rpx 24rpx;
@@ -893,6 +895,7 @@ const removeConversation = async (id) => {
 .heading-1 { font-size: 36rpx; }.heading-2 { font-size: 33rpx; }.heading-3 { font-size: 31rpx; }.heading-4, .heading-5, .heading-6 { font-size: 29rpx; }
 .markdown-list-item { display: flex; align-items: flex-start; margin: 6rpx 0; white-space: pre-wrap; word-break: break-word; }
 .markdown-list-marker { flex: none; width: 42rpx; color: var(--life-primary-deep); font-weight: 700; }
+.markdown-list-content { flex: 1; min-width: 0; white-space: pre-wrap; word-break: break-word; }
 .markdown-quote { margin: 8rpx 0; padding: 8rpx 16rpx; border-left: 6rpx solid var(--life-primary); background: var(--life-surface-soft); color: var(--life-muted); white-space: pre-wrap; }
 .markdown-code { margin: 10rpx 0; padding: 16rpx; border-radius: 12rpx; background: #273126; color: #e8f0dc; font-family: monospace; font-size: 24rpx; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 .markdown-hr { height: 1rpx; margin: 18rpx 0; background: var(--life-border); }

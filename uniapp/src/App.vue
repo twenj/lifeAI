@@ -1,9 +1,10 @@
 <script>
 import { backendApi } from './lib/api.js'
-import { scheduleLocalReminder } from './lib/notifications.js'
+import { initLocalPush, scheduleLocalReminder } from './lib/notifications.js'
 
 export default {
   onLaunch() {
+    initLocalPush()
     backendApi.login()
       .then(() => backendApi.schedules())
       .then((items) => items.forEach(scheduleLocalReminder))
