@@ -9,8 +9,8 @@ const baseUrl = () => {
   // 生产环境可通过 VITE_API_BASE_URL 指向 HTTPS API；未配置时使用同源代理。
   return configuredBaseUrl || '/backend'
   // #endif
-  // App/小程序打包时必须配置 HTTPS API 地址；开发环境保留本机 HTTP 回退。
-  return configuredBaseUrl || 'http://113.44.188.18:8787'
+  // App-Plus 使用线上 HTTPS 反向代理；接口路径会拼成 /backend/v1/...
+  return configuredBaseUrl || 'https://113.44.188.18/backend'
 }
 
 export const backendAssetUrl = (path) => `${baseUrl()}${path}`

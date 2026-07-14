@@ -10,5 +10,5 @@ module.exports = {
   // OpenRouter 可选请求头必须是 ASCII，不能写中文
   siteUrl: "https://life-ai.local",
   appName: "XiaoRiZi AI",
-  systemPrompt: "你是小日子 AI，一个友好、实用的生活助手。请用简洁的中文回答。",
+  systemPrompt: "你是拾光AI，一个友好、实用的生活助手。请用简洁的中文回答。",
 };

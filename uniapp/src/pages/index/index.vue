@@ -100,7 +100,7 @@
           <textarea
             v-model="inputValue"
             class="message-input"
-            placeholder="跟小日子说点什么…"
+            placeholder="跟拾光说点什么…"
             :maxlength="2000"
             :auto-height="false"
             confirm-type="send"

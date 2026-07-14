@@ -58,6 +58,8 @@
 - 修复 App-Plus 二维码 Canvas 报错：改用静态加载二维码库并生成 SVG data URL，避免代码分割和 Canvas 依赖
 - 修复食物库加入饮食默认重量：有包装份量时默认加入一份，无包装份量时默认 100g
 - 修正饮食热量换算：有包装每份重量时按“每份营养 ÷ 每份克重 × 实际克重”，无份量信息时才按 100g 作为基准
+- Android/iOS App 默认后端地址切换为 `https://113.44.188.18/backend`，H5 仍使用同源 `/backend` 或 `VITE_API_BASE_URL`
+- 修复 H5 添加到手机主屏幕无图标：改用 `public/icons` 下的 favicon 与 apple-touch-icon，并补充 iOS 主屏幕元信息
 - 后端 build 脚本改为先执行 `prisma generate` 再编译，避免部署服务器 Prisma Client 未同步新字段
 - 历史会话加载时过滤旧 Base64 图片，只显示新路径型图片；不再兼容旧数据库图片内容
 - 修复食物库加入饮食在清晨日期偏前：改用设备本地日期，不再使用 UTC `toISOString()`；同步修正日程和聊天批量记账默认日期
