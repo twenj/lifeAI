@@ -5,7 +5,7 @@
     "versionName" : "0.0.1",
     "versionCode" : 1,
     "h5" : {
-        "title" : "Life AI",
+        "title" : "小日子AI",
         "router" : {
             "mode" : "hash"
         },

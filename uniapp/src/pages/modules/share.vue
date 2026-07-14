@@ -76,7 +76,7 @@ const scan = () => {
     success: async (result) => {
       const code = parseShareCode(result.result)
       if (!code) {
-        uni.showToast({ title: '二维码不是 Life AI 共享码', icon: 'none' })
+        uni.showToast({ title: '二维码不是小日子AI共享码', icon: 'none' })
         return
       }
       joinCode.value = code

@@ -1,4 +1,4 @@
-# Life AI
+# 小日子AI
 
 一个基于 uni-app（Vue 3 + Vite）的 AI 聊天应用，支持 App、微信小程序与 H5。聊天、会话和模块数据通过同级目录的 Node.js + MySQL 后端持久化。
 

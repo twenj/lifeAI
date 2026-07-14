@@ -6,7 +6,7 @@ export function scheduleLocalReminder(schedule) {
   const when = new Date(schedule.startAt).getTime() - minutes * 60 * 1000
   if (!push || !Number.isFinite(minutes) || minutes < 0 || !Number.isFinite(when) || when <= Date.now()) return false
   push.createMessage(`日程：${schedule.title}`, JSON.stringify({ scheduleId: schedule.id }), {
-    title: 'Life AI 日程提醒',
+    title: '小日子AI 日程提醒',
     when: new Date(when),
     sound: 'system',
     cover: false,
