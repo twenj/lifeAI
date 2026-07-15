@@ -12,7 +12,7 @@ export default defineConfig({
     port: 4000,
     proxy: {
       '/backend': {
-        target: 'http://113.44.188.18:8787',
+        target: 'http://127.0.0.1:8787',
         changeOrigin: true,
         timeout: 180000,
         proxyTimeout: 180000,

@@ -5,7 +5,7 @@
       <view class="hint">聊天里发营养成分表图片，并在文字中带上「食物」（如「每日坚果 食物」），识别成功后会自动保存。也可搜索后一键加入今日饮食。</view>
 
       <view class="search-bar">
-        <input v-model="keyword" class="search-input" placeholder="搜索食物名称" confirm-type="search" @input="debouncedSearch" />
+        <input :value="keyword" class="search-input" placeholder="搜索食物名称" confirm-type="search" @input="onSearchInput" @confirm="searchNow" />
         <view v-if="keyword" class="search-clear" @tap="clearSearch">清除</view>
       </view>
 
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import PageNavbar from '../../components/PageNavbar.vue'
 import PaginationFooter from '../../components/PaginationFooter.vue'
 import { backendApi } from '../../lib/api.js'
@@ -163,14 +163,28 @@ const loadMore = async () => {
   }
 }
 
-const debouncedSearch = () => {
+const scheduleSearch = () => {
   if (searchTimer.value) clearTimeout(searchTimer.value)
   searchTimer.value = setTimeout(() => {
+    searchTimer.value = null
     load(keyword.value.trim()).catch((error) => uni.showToast({ title: error.message || '搜索失败', icon: 'none' }))
   }, 300)
 }
 
+const onSearchInput = (event) => {
+  keyword.value = event.detail.value
+  scheduleSearch()
+}
+
+const searchNow = () => {
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = null
+  load(keyword.value.trim()).catch((error) => uni.showToast({ title: error.message || '搜索失败', icon: 'none' }))
+}
+
 const clearSearch = () => {
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = null
   keyword.value = ''
   load().catch((error) => uni.showToast({ title: error.message || '加载失败', icon: 'none' }))
 }
@@ -290,6 +304,10 @@ const confirmAddDiet = async () => {
 }
 
 onMounted(() => load().catch((error) => uni.showToast({ title: error.message || '加载失败', icon: 'none' })))
+
+onUnmounted(() => {
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+})
 </script>
 
 <style scoped>
