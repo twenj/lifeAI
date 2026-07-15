@@ -36,7 +36,8 @@
         </view>
       </view>
 
-      <view v-if="!items.length" class="empty">{{ keyword.trim() ? '没有匹配的食物' : '还没有食物，去聊天里识别一张营养成分表吧' }}</view>
+      <view v-if="loading" class="empty">{{ keyword.trim() ? '正在搜索食物…' : '正在加载食物库…' }}</view>
+      <view v-else-if="!items.length" class="empty">{{ keyword.trim() ? '没有匹配的食物' : '还没有食物，去聊天里识别一张营养成分表吧' }}</view>
       <view v-for="item in items" :key="item.id" class="food-card">
         <view class="food-head">
           <view class="food-name">{{ item.name }}</view>
@@ -83,9 +84,11 @@ import { backendApi } from '../../lib/api.js'
 const items = ref([])
 const page = ref(1)
 const hasMore = ref(false)
+const loading = ref(false)
 const loadingMore = ref(false)
 const keyword = ref('')
 const searchTimer = ref(null)
+let searchRequestId = 0
 const editingId = ref('')
 const emptyDraft = () => ({
   name: '',
@@ -124,24 +127,37 @@ const dietEstimate = computed(() => {
 })
 
 const load = async (searchKeyword = '') => {
-  await backendApi.login()
-  page.value = 1
-  const result = await backendApi.foodItems(page.value, 20, searchKeyword)
-  items.value = result.items
-  hasMore.value = result.hasMore
+  const requestId = ++searchRequestId
+  loading.value = true
+  try {
+    await backendApi.login()
+    const result = await backendApi.foodItems(1, 20, searchKeyword)
+    // 输入变化后，较早发出的请求可能更晚返回；只采用最新搜索的结果。
+    if (requestId !== searchRequestId) return
+    page.value = 1
+    items.value = result.items
+    hasMore.value = result.hasMore
+  } catch (error) {
+    if (requestId === searchRequestId) throw error
+  } finally {
+    if (requestId === searchRequestId) loading.value = false
+  }
 }
 
 const loadMore = async () => {
-  if (!hasMore.value || loadingMore.value) return
+  if (!hasMore.value || loading.value || loadingMore.value) return
   loadingMore.value = true
-  page.value += 1
+  const requestId = searchRequestId
+  const nextPage = page.value + 1
+  const searchKeyword = keyword.value.trim()
   try {
-    const result = await backendApi.foodItems(page.value, 20, keyword.value.trim())
+    const result = await backendApi.foodItems(nextPage, 20, searchKeyword)
+    if (requestId !== searchRequestId) return
+    page.value = nextPage
     items.value = [...items.value, ...result.items]
     hasMore.value = result.hasMore
   } catch (error) {
-    page.value -= 1
-    uni.showToast({ title: error.message || '加载失败', icon: 'none' })
+    if (requestId === searchRequestId) uni.showToast({ title: error.message || '加载失败', icon: 'none' })
   } finally {
     loadingMore.value = false
   }
