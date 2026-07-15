@@ -5,8 +5,8 @@
       <view class="hint">聊天里发营养成分表图片，并在文字中带上「食物」（如「每日坚果 食物」），识别成功后会自动保存。也可搜索后一键加入今日饮食。</view>
 
       <view class="search-bar">
-        <input v-model="keyword" class="search-input" placeholder="搜索食物名称" confirm-type="search" />
-        <view v-if="keyword" class="search-clear" @tap="keyword = ''">清除</view>
+        <input v-model="keyword" class="search-input" placeholder="搜索食物名称" confirm-type="search" @input="debouncedSearch" />
+        <view v-if="keyword" class="search-clear" @tap="clearSearch">清除</view>
       </view>
 
       <view class="form-card">
@@ -36,8 +36,8 @@
         </view>
       </view>
 
-      <view v-if="!filteredItems.length" class="empty">{{ items.length ? '没有匹配的食物' : '还没有食物，去聊天里识别一张营养成分表吧' }}</view>
-      <view v-for="item in filteredItems" :key="item.id" class="food-card">
+      <view v-if="!items.length" class="empty">{{ keyword.trim() ? '没有匹配的食物' : '还没有食物，去聊天里识别一张营养成分表吧' }}</view>
+      <view v-for="item in items" :key="item.id" class="food-card">
         <view class="food-head">
           <view class="food-name">{{ item.name }}</view>
           <view class="card-actions">
@@ -57,7 +57,7 @@
         </view>
         <view v-if="item.servingSizeG" class="source">包装标注每份 {{ item.servingSizeG }}g</view>
       </view>
-      <PaginationFooter :has-more="hasMore && !keyword.trim()" :loading="loadingMore" @load-more="loadMore" />
+      <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
 
     <view v-if="dietVisible" class="sheet-mask" @tap="closeDietSheet" />
@@ -85,6 +85,7 @@ const page = ref(1)
 const hasMore = ref(false)
 const loadingMore = ref(false)
 const keyword = ref('')
+const searchTimer = ref(null)
 const editingId = ref('')
 const emptyDraft = () => ({
   name: '',
@@ -110,12 +111,6 @@ const today = () => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-const filteredItems = computed(() => {
-  const q = keyword.value.trim().toLowerCase()
-  if (!q) return items.value
-  return items.value.filter((item) => String(item.name || '').toLowerCase().includes(q))
-})
-
 const dietEstimate = computed(() => {
   const amount = Number(dietAmountG.value)
   const food = dietTarget.value
@@ -128,14 +123,41 @@ const dietEstimate = computed(() => {
   return parts.length ? `按 ${amount}g 估算：${parts.join(' · ')}` : ''
 })
 
-const load = async () => {
+const load = async (searchKeyword = '') => {
   await backendApi.login()
   page.value = 1
-  const result = await backendApi.foodItems(page.value)
+  const result = await backendApi.foodItems(page.value, 20, searchKeyword)
   items.value = result.items
   hasMore.value = result.hasMore
 }
-const loadMore = async () => { if (!hasMore.value || loadingMore.value || keyword.value.trim()) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.foodItems(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
+
+const loadMore = async () => {
+  if (!hasMore.value || loadingMore.value) return
+  loadingMore.value = true
+  page.value += 1
+  try {
+    const result = await backendApi.foodItems(page.value, 20, keyword.value.trim())
+    items.value = [...items.value, ...result.items]
+    hasMore.value = result.hasMore
+  } catch (error) {
+    page.value -= 1
+    uni.showToast({ title: error.message || '加载失败', icon: 'none' })
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+const debouncedSearch = () => {
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => {
+    load(keyword.value.trim()).catch((error) => uni.showToast({ title: error.message || '搜索失败', icon: 'none' }))
+  }, 300)
+}
+
+const clearSearch = () => {
+  keyword.value = ''
+  load().catch((error) => uni.showToast({ title: error.message || '加载失败', icon: 'none' }))
+}
 
 const numberOrNull = (value) => (value === '' || value == null ? null : Number(value))
 const reset = () => {
@@ -164,7 +186,6 @@ const save = async () => {
   const calories = numberOrNull(draft.calories)
   try {
     if (editingId.value) {
-      // 编辑：完整营养字段（与聊天识图一致）
       await backendApi.updateFoodItem(editingId.value, {
         name: draft.name.trim(),
         servingSizeG: numberOrNull(draft.servingSizeG),
@@ -177,7 +198,6 @@ const save = async () => {
         sodiumMgPer100g: numberOrNull(draft.sodiumMg),
       })
     } else {
-      // 手动新增：精简版，只提交名称/份量/热量
       const result = await backendApi.createFoodItem({
         name: draft.name.trim(),
         servingSizeG: numberOrNull(draft.servingSizeG),
@@ -189,7 +209,7 @@ const save = async () => {
       }
     }
     reset()
-    await load()
+    await load(keyword.value.trim())
     uni.showToast({ title: '保存成功', icon: 'success' })
   } catch (error) {
     uni.showToast({ title: error.message || '保存失败', icon: 'none' })
@@ -215,7 +235,6 @@ const remove = (item) => {
 
 const openDietSheet = (item) => {
   dietTarget.value = item
-  // 有包装份量时，库内营养值代表“每份”，默认带入一份；没有份量信息时才按 100g。
   dietAmountG.value = item.servingSizeG ? String(item.servingSizeG) : '100'
   dietVisible.value = true
 }

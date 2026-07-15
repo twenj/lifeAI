@@ -99,7 +99,7 @@ export const backendApi = {
   recognizeFoodLabel: (images) => request('/v1/food-label/recognize', { method: 'POST', data: { images } }),
   recognizeAndSaveFoodLabel: (images, name) => request('/v1/food-label/recognize-and-save', { method: 'POST', data: { images, ...(name ? { name } : {}) } }),
   parseReceipt: (images, source = 'other') => request('/v1/receipt/parse', { method: 'POST', data: { images, source } }),
-  foodItems: (page = 1, pageSize = 20) => request(`/v1/food-items?page=${page}&pageSize=${pageSize}`),
+  foodItems: (page = 1, pageSize = 20, search = '') => request(`/v1/food-items?page=${page}&pageSize=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
   createFoodItem: (data) => request('/v1/food-items', { method: 'POST', data }),
   updateFoodItem: (id, data) => request(`/v1/food-items/${id}`, { method: 'PATCH', data }),
   deleteFoodItem: (id) => request(`/v1/food-items/${id}`, { method: 'DELETE' }),
