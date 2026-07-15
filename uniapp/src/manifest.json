@@ -16,7 +16,8 @@
     "app-plus" : {
         "usingComponents" : true,
         "modules" : {
-            "Push" : {}
+            "Push" : {},
+            "Barcode" : {}
         },
         "distribute" : {
             "icons" : {
@@ -57,7 +58,10 @@
                 "appid" : "com.lifeai.app"
             },
             "ios" : {
-                "dSYMs" : false
+                "dSYMs" : false,
+                "privacyDescription" : {
+                    "NSCameraUsageDescription" : "用于扫描共享二维码以加入共享数据"
+                }
             }
         }
     },

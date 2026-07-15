@@ -62,7 +62,23 @@ const generate = async () => {
   }
 }
 
-const scan = () => {
+const requestCameraPermission = () => {
+  // #ifdef APP-PLUS
+  if (plus.os.name === 'Android') {
+    return new Promise((resolve) => {
+      plus.android.requestPermissions(
+        ['android.permission.CAMERA'],
+        (result) => resolve(result.granted?.includes('android.permission.CAMERA')),
+        () => resolve(false),
+      )
+    })
+  }
+  // iOS 会在下面调用 uni.scanCode 时展示系统相机授权弹窗。
+  // #endif
+  return Promise.resolve(true)
+}
+
+const scan = async () => {
   // #ifdef H5
   uni.showToast({ title: '网页端请手动输入共享码', icon: 'none' })
   return
@@ -71,8 +87,13 @@ const scan = () => {
     uni.showToast({ title: '当前环境不支持扫码，请手动输入', icon: 'none' })
     return
   }
+  const granted = await requestCameraPermission()
+  if (!granted) {
+    uni.showToast({ title: '未获得相机权限，请在系统设置中开启后重试', icon: 'none' })
+    return
+  }
   uni.scanCode({
-    onlyFromCamera: false,
+    onlyFromCamera: true,
     scanType: ['qrCode'],
     success: async (result) => {
       const code = parseShareCode(result.result)
@@ -86,6 +107,10 @@ const scan = () => {
     fail: (error) => {
       const msg = String(error?.errMsg || '')
       if (/cancel|取消/i.test(msg)) return
+      if (/permission|authorize|auth|denied|相机/i.test(msg)) {
+        uni.showToast({ title: '未获得相机权限，请在系统设置中开启后重试', icon: 'none' })
+        return
+      }
       uni.showToast({ title: '扫码失败，请手动输入共享码', icon: 'none' })
     },
   })

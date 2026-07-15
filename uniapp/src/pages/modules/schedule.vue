@@ -10,7 +10,11 @@
           <picker mode="time" :value="draft.startTime" @change="changeStartTime"><view class="field half">开始：{{ draft.startTime }}</view></picker>
           <picker mode="time" :value="draft.endTime" @change="draft.endTime = $event.detail.value"><view class="field half">结束：{{ draft.endTime }}</view></picker>
         </view>
-        <picker :range="repeatOptions" @change="draft.repeat = repeatValues[$event.detail.value]"><view class="field">重复：{{ repeatLabel }}</view></picker>
+        <picker :range="repeatOptions" @change="changeRepeat"><view class="field">重复：{{ repeatLabel }}</view></picker>
+        <view v-if="draft.repeat === 'custom'" class="row">
+          <input v-model.number="draft.customRepeatDays" class="input half" type="number" placeholder="重复天数" min="1" max="365" />
+          <view class="field half" style="display: flex; align-items: center; justify-content: center;">天</view>
+        </view>
         <picker :range="reminderOptions" @change="draft.reminderMinutes = reminderValues[$event.detail.value]"><view class="field">提醒：{{ reminderLabel }}</view></picker>
         <textarea v-model="draft.notes" class="textarea" placeholder="备注（可选）" maxlength="2000" auto-height />
         <view class="form-actions"><view class="primary-button" @tap="save">{{ editingId ? '保存修改' : '保存日程' }}</view><view v-if="editingId" class="cancel-button" @tap="resetDraft">取消编辑</view></view>
@@ -22,7 +26,7 @@
           <view class="schedule-title">{{ item.title }}</view>
           <view class="schedule-time">{{ formatDateTime(item.startAt) }}<text v-if="item.endAt"> - {{ formatTime(item.endAt) }}</text></view>
           <view v-if="item.notes" class="schedule-notes">{{ item.notes }}</view>
-          <view class="schedule-meta">{{ repeatText(item.repeat) }}<text v-if="item.reminderMinutes != null"> · 提前{{ item.reminderMinutes }}分钟提醒</text></view>
+          <view class="schedule-meta">{{ repeatText(item) }}<text v-if="item.reminderMinutes != null"> · 提前{{ item.reminderMinutes }}分钟提醒</text></view>
         </view>
         <view class="actions"><view class="edit" @tap="edit(item)">编辑</view><view class="complete" @tap="toggle(item)">{{ item.completed ? '已完成' : '完成' }}</view><view class="delete" @tap="remove(item)">删除</view></view>
       </view>
@@ -47,15 +51,21 @@ const items = ref([])
 const page = ref(1)
 const hasMore = ref(false)
 const loadingMore = ref(false)
-const repeatValues = ['none', 'daily', 'weekly', 'monthly']
-const repeatOptions = ['不重复', '每天', '每周', '每月']
+const repeatValues = ['none', 'daily', 'weekly', 'monthly', 'custom']
+const repeatOptions = ['不重复', '每天', '每周', '每月', '自定义']
 const reminderValues = [null, 10, 30, 60]
 const reminderOptions = ['不提醒', '提前10分钟', '提前30分钟', '提前1小时']
-const draft = reactive({ title: '', date: today(), startTime: '09:00', endTime: '10:00', repeat: 'none', reminderMinutes: null, notes: '' })
+const draft = reactive({ title: '', date: today(), startTime: '09:00', endTime: '10:00', repeat: 'none', customRepeatDays: null, reminderMinutes: null, notes: '' })
 const editingId = ref('')
-const repeatLabel = computed(() => repeatOptions[repeatValues.indexOf(draft.repeat)] || '不重复')
+const repeatLabel = computed(() => {
+  if (draft.repeat === 'custom' && draft.customRepeatDays) return `每${draft.customRepeatDays}天`
+  return repeatOptions[repeatValues.indexOf(draft.repeat)] || '不重复'
+})
 const reminderLabel = computed(() => reminderOptions[reminderValues.indexOf(draft.reminderMinutes)] || '不提醒')
-const repeatText = (value) => repeatOptions[repeatValues.indexOf(value)] || '不重复'
+const repeatText = (item) => {
+  if (item.repeat === 'custom' && item.customRepeatDays) return `每${item.customRepeatDays}天`
+  return repeatOptions[repeatValues.indexOf(item.repeat)] || '不重复'
+}
 const formatDateTime = (value) => new Date(value).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const formatTime = (value) => new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.schedules(page.value); items.value = result.items; hasMore.value = result.hasMore }
@@ -69,6 +79,10 @@ const changeStartTime = (event) => {
   draft.startTime = event.detail.value
   draft.endTime = timeAfterOneHour(draft.startTime)
 }
+const changeRepeat = (event) => {
+  draft.repeat = repeatValues[event.detail.value]
+  if (draft.repeat !== 'custom') draft.customRepeatDays = null
+}
 const localDate = (value) => {
   const date = new Date(value)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -81,7 +95,7 @@ const toIsoRange = () => {
 }
 const resetDraft = () => {
   editingId.value = ''
-  Object.assign(draft, { title: '', date: today(), startTime: '09:00', endTime: '10:00', repeat: 'none', reminderMinutes: null, notes: '' })
+  Object.assign(draft, { title: '', date: today(), startTime: '09:00', endTime: '10:00', repeat: 'none', customRepeatDays: null, reminderMinutes: null, notes: '' })
 }
 const edit = (item) => {
   editingId.value = item.id
@@ -89,15 +103,16 @@ const edit = (item) => {
   Object.assign(draft, {
     title: item.title || '', date: localDate(item.startAt), startTime: `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`,
     endTime: item.endAt ? `${String(new Date(item.endAt).getHours()).padStart(2, '0')}:${String(new Date(item.endAt).getMinutes()).padStart(2, '0')}` : timeAfterOneHour(`${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`),
-    repeat: item.repeat || 'none', reminderMinutes: item.reminderMinutes ?? null, notes: item.notes || '',
+    repeat: item.repeat || 'none', customRepeatDays: item.customRepeatDays ?? null, reminderMinutes: item.reminderMinutes ?? null, notes: item.notes || '',
   })
 }
 const save = async () => {
   if (!draft.title.trim()) return uni.showToast({ title: '请输入日程标题', icon: 'none' })
+  if (draft.repeat === 'custom' && (!draft.customRepeatDays || draft.customRepeatDays < 1)) return uni.showToast({ title: '请输入有效的重复天数', icon: 'none' })
   try {
     const wasEditing = Boolean(editingId.value)
     const range = toIsoRange()
-    const payload = { title: draft.title.trim(), ...range, repeat: draft.repeat, reminderMinutes: draft.reminderMinutes, notes: draft.notes.trim() || undefined }
+    const payload = { title: draft.title.trim(), ...range, repeat: draft.repeat, customRepeatDays: draft.repeat === 'custom' ? draft.customRepeatDays : null, reminderMinutes: draft.reminderMinutes, notes: draft.notes.trim() || undefined }
     const saved = editingId.value ? await backendApi.updateSchedule(editingId.value, payload) : await backendApi.createSchedule(payload)
     scheduleLocalReminder(saved)
     resetDraft(); await load(); uni.showToast({ title: wasEditing ? '修改成功' : '保存成功', icon: 'success' })
