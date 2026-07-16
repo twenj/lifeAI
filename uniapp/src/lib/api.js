@@ -9,8 +9,8 @@ const baseUrl = () => {
   // 生产环境可通过 VITE_API_BASE_URL 指向 HTTPS API；未配置时使用同源代理。
   return configuredBaseUrl || '/backend'
   // #endif
-  // App-Plus 使用线上 HTTPS 反向代理；接口路径会拼成 /backend/v1/...
-  return configuredBaseUrl || 'https://lifeai-shiguang.com/backend'
+  // App-Plus 使用线上 HTTP 反向代理；接口路径会拼成 /backend/v1/...
+  return configuredBaseUrl || 'https://113.44.188.18/backend'
 }
 
 export const backendAssetUrl = (path) => `${baseUrl()}${path}`
