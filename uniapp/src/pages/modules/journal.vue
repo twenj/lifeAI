@@ -33,7 +33,7 @@ const hasMore = ref(false)
 const loadingMore = ref(false)
 const editingId = ref('')
 const editDraft = reactive({ title: '', content: '' })
-const formatDate = (value) => new Date(value).toLocaleString('zh-CN')
+const formatDate = (value) => { const d = new Date(value); const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}` }
 const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.journals(page.value); items.value = result.items; hasMore.value = result.hasMore }
 const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.journals(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 const startEdit = (item) => { editingId.value = item.id; editDraft.title = item.title; editDraft.content = item.content }

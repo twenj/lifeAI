@@ -219,19 +219,18 @@ const onDragMove = (event) => {
   if (dragIndex.value < 0) return
   const touch = event.touches?.[0]
   if (!touch) return
-  const delta = touch.clientY - dragStartY.value
-  dragOffsetY.value = delta
-  const moveRows = Math.round(delta / rowHeightPx.value)
+  const rawDelta = touch.clientY - dragStartY.value
+  const moveRows = Math.round(rawDelta / rowHeightPx.value)
   const target = Math.max(0, Math.min(items.value.length - 1, dragFromIndex.value + moveRows))
+  // 补偿 DOM 重排位移：拖动项已从 dragFromIndex 移到 dragIndex，需扣除该位移让卡片跟随手指
+  dragOffsetY.value = rawDelta - (dragIndex.value - dragFromIndex.value) * rowHeightPx.value
   if (target === dragIndex.value) return
   const next = items.value.slice()
   const [row] = next.splice(dragIndex.value, 1)
   next.splice(target, 0, row)
   items.value = next
   dragIndex.value = target
-  dragFromIndex.value = target
-  dragStartY.value = touch.clientY
-  dragOffsetY.value = 0
+  dragOffsetY.value = rawDelta - (target - dragFromIndex.value) * rowHeightPx.value
 }
 
 const onDragEnd = async () => {

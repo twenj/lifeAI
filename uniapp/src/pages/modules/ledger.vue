@@ -88,7 +88,7 @@ const totalExpense = computed(() =>
   records.value.filter((item) => item.type === 'expense').reduce((sum, item) => sum + Number(item.amount), 0),
 )
 
-const formatDate = (value) => new Date(value).toLocaleDateString('zh-CN')
+const formatDate = (value) => { const d = new Date(value); const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
 
 const load = async () => {
   await backendApi.login()

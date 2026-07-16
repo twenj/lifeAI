@@ -66,8 +66,9 @@ const repeatText = (item) => {
   if (item.repeat === 'custom' && item.customRepeatDays) return `每${item.customRepeatDays}天`
   return repeatOptions[repeatValues.indexOf(item.repeat)] || '不重复'
 }
-const formatDateTime = (value) => new Date(value).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-const formatTime = (value) => new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+const pad2 = (n) => String(n).padStart(2, '0')
+const formatDateTime = (value) => { const d = new Date(value); return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}` }
+const formatTime = (value) => { const d = new Date(value); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}` }
 const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.schedules(page.value); items.value = result.items; hasMore.value = result.hasMore }
 const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.schedules(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
 const timeAfterOneHour = (value) => {
