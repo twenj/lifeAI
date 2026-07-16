@@ -92,7 +92,7 @@ export const backendApi = {
   createLedger: (data) => request('/v1/ledger', { method: 'POST', data }),
   createLedgerBatch: (items) => request('/v1/ledger/batch', { method: 'POST', data: { items } }),
   deleteLedger: (id) => request(`/v1/ledger/${id}`, { method: 'DELETE' }),
-  schedules: (page = 1, pageSize = 20) => request(`/v1/schedules?page=${page}&pageSize=${pageSize}`),
+  schedules: (page = 1, pageSize = 20, completed = null) => request(`/v1/schedules?page=${page}&pageSize=${pageSize}${completed === true ? '&completed=true' : completed === false ? '&completed=false' : ''}`),
   createSchedule: (data) => request('/v1/schedules', { method: 'POST', data }),
   updateSchedule: (id, data) => request(`/v1/schedules/${id}`, { method: 'PATCH', data }),
   deleteSchedule: (id) => request(`/v1/schedules/${id}`, { method: 'DELETE' }),

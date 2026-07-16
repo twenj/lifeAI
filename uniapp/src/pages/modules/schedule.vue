@@ -19,8 +19,13 @@
         <textarea v-model="draft.notes" class="textarea" placeholder="备注（可选）" maxlength="2000" auto-height />
         <view class="form-actions"><view class="primary-button" @tap="save">{{ editingId ? '保存修改' : '保存日程' }}</view><view v-if="editingId" class="cancel-button" @tap="resetDraft">取消编辑</view></view>
       </view>
-      <view class="section-title">我的日程</view>
-      <view v-if="!items.length" class="empty">还没有日程安排</view>
+
+      <view class="tabs">
+        <view class="tab" :class="{ active: activeTab === 'pending' }" @tap="switchTab('pending')">未完成</view>
+        <view class="tab" :class="{ active: activeTab === 'completed' }" @tap="switchTab('completed')">已完成</view>
+      </view>
+
+      <view v-if="!items.length" class="empty">{{ activeTab === 'pending' ? '还没有日程安排' : '还没有已完成的日程' }}</view>
       <view v-for="item in items" :key="item.id" class="schedule-card" :class="{ done: item.completed }">
         <view class="schedule-main">
           <view class="schedule-title">{{ item.title }}</view>
@@ -28,7 +33,7 @@
           <view v-if="item.notes" class="schedule-notes">{{ item.notes }}</view>
           <view class="schedule-meta">{{ repeatText(item) }}<text v-if="item.reminderMinutes != null"> · 提前{{ item.reminderMinutes }}分钟提醒</text></view>
         </view>
-        <view class="actions"><view class="edit" @tap="edit(item)">编辑</view><view class="complete" @tap="toggle(item)">{{ item.completed ? '已完成' : '完成' }}</view><view class="delete" @tap="remove(item)">删除</view></view>
+        <view class="actions"><view class="edit" @tap="edit(item)">编辑</view><view class="complete" @tap="toggle(item)">{{ item.completed ? '取消完成' : '完成' }}</view><view class="delete" @tap="remove(item)">删除</view></view>
       </view>
       <PaginationFooter :has-more="hasMore" :loading="loadingMore" @load-more="loadMore" />
     </view>
@@ -47,6 +52,7 @@ const today = () => {
   const date = new Date()
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
+const activeTab = ref('pending')
 const items = ref([])
 const page = ref(1)
 const hasMore = ref(false)
@@ -69,8 +75,9 @@ const repeatText = (item) => {
 const pad2 = (n) => String(n).padStart(2, '0')
 const formatDateTime = (value) => { const d = new Date(value); return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}` }
 const formatTime = (value) => { const d = new Date(value); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}` }
-const load = async () => { await backendApi.login(); page.value = 1; const result = await backendApi.schedules(page.value); items.value = result.items; hasMore.value = result.hasMore }
-const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const result = await backendApi.schedules(page.value); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
+const load = async () => { await backendApi.login(); page.value = 1; const completed = activeTab.value === 'completed'; const result = await backendApi.schedules(page.value, 20, completed); items.value = result.items; hasMore.value = result.hasMore }
+const loadMore = async () => { if (!hasMore.value || loadingMore.value) return; loadingMore.value = true; page.value += 1; try { const completed = activeTab.value === 'completed'; const result = await backendApi.schedules(page.value, 20, completed); items.value = [...items.value, ...result.items]; hasMore.value = result.hasMore } catch (error) { page.value -= 1; uni.showToast({ title: error.message || '加载失败', icon: 'none' }) } finally { loadingMore.value = false } }
+const switchTab = (tab) => { if (activeTab.value === tab) return; activeTab.value = tab; load() }
 const timeAfterOneHour = (value) => {
   const [hour, minute] = String(value || '09:00').split(':').map(Number)
   const total = ((hour * 60 + minute + 60) % 1440 + 1440) % 1440
@@ -119,7 +126,7 @@ const save = async () => {
     resetDraft(); await load(); uni.showToast({ title: wasEditing ? '修改成功' : '保存成功', icon: 'success' })
   } catch (error) { uni.showToast({ title: error.message || '保存失败', icon: 'none' }) }
 }
-const toggle = async (item) => { try { const updated = await backendApi.updateSchedule(item.id, { completed: !item.completed }); item.completed = updated.completed } catch (error) { uni.showToast({ title: error.message || '更新失败', icon: 'none' }) } }
+const toggle = async (item) => { try { await backendApi.updateSchedule(item.id, { completed: !item.completed }); await load() } catch (error) { uni.showToast({ title: error.message || '更新失败', icon: 'none' }) } }
 const remove = (item) => uni.showModal({ title: '删除日程', content: '确定删除这条日程吗？', success: async ({ confirm }) => { if (!confirm) return; try { await backendApi.deleteSchedule(item.id); items.value = items.value.filter((row) => row.id !== item.id) } catch (error) { uni.showToast({ title: error.message || '删除失败', icon: 'none' }) } } })
 onMounted(() => load().catch((error) => uni.showToast({ title: error.message || '加载失败', icon: 'none' })))
 onShow(() => load().catch(() => undefined))
@@ -129,7 +136,7 @@ onShow(() => load().catch(() => undefined))
 .page { min-height: 100vh; background: var(--life-bg); }
 .body { padding: 30rpx 28rpx 60rpx; }
 .form-card, .schedule-card { padding: 26rpx; border-radius: 22rpx; background: var(--life-surface); box-shadow: 0 4rpx 14rpx var(--life-shadow); }
-.form-title, .section-title { margin-bottom: 20rpx; font-size: 32rpx; font-weight: 700; color: var(--life-text); }
+.form-title { margin-bottom: 20rpx; font-size: 32rpx; font-weight: 700; color: var(--life-text); }
 .field, .input, .textarea { box-sizing: border-box; width: 100%; min-height: 76rpx; margin-bottom: 16rpx; padding: 18rpx 20rpx; border-radius: 16rpx; background: var(--life-surface-soft); color: var(--life-text); font-size: 28rpx; }
 .textarea { min-height: 130rpx; line-height: 1.5; }
 .row { display: flex; gap: 16rpx; }
@@ -139,8 +146,10 @@ onShow(() => load().catch(() => undefined))
 .primary-button, .cancel-button { padding: 20rpx; border-radius: 16rpx; text-align: center; font-size: 28rpx; }
 .primary-button { background: var(--life-primary); color: #fff; }
 .cancel-button { background: var(--life-surface-soft); color: var(--life-muted); }
-.section-title { margin-top: 34rpx; }
-.empty { padding: 60rpx; text-align: center; color: var(--life-muted); }
+.tabs { display: flex; gap: 12rpx; margin: 34rpx 0 24rpx; padding: 8rpx; border-radius: 20rpx; background: var(--life-surface); box-shadow: 0 4rpx 14rpx var(--life-shadow); }
+.tab { flex: 1; padding: 18rpx 0; border-radius: 14rpx; text-align: center; font-size: 28rpx; color: var(--life-muted); }
+.tab.active { background: var(--life-primary); color: #fff; font-weight: 700; }
+.empty { padding: 60rpx; text-align: center; color: var(--life-muted); font-size: 28rpx; }
 .schedule-card { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14rpx; }
 .schedule-main { flex: 1; min-width: 0; }
 .schedule-title { font-size: 31rpx; font-weight: 700; color: var(--life-text); }
