@@ -3,6 +3,7 @@ import uni from '@dcloudio/vite-plugin-uni'
 import { h5ChatApi } from './plugins/h5ChatApi.js'
 
 export default defineConfig({
+  root: 'src',
   plugins: [uni(), h5ChatApi()],
   define: {
     __LIFEAI_API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || ''),

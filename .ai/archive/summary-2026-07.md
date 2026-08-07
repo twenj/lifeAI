@@ -9,3 +9,12 @@
 - 体重：一天多条 + 日期时间；规则提取补强
 - 食物库：成功识图自动入库、同名跳过；手动表单精简
 - 共享：H5 隐藏扫码；发送按钮绑定修复；超时约 180s；composer UI 对齐
+
+## 2026-07-12（MCP 配置）
+- Project Memory 已在 lifeAI 工作区连通
+- `${workspaceFolder}` / `~/` 曾导致错误根路径 `lifeAI/~/.../.ai`
+- 已改为绝对路径 `PROJECT_MEMORY_ROOT=/Users/tangwenjing/WeChatProjects/lifeAI`
+- `get_effective_project_root` 确认 Memory 根为 `lifeAI/.ai`
+
+## 2026-07-12（文档）
+- 用户文档写入 `docs/`：总览、架构、模块、AI 入库、API、开发

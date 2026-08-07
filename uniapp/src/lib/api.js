@@ -10,7 +10,7 @@ const baseUrl = () => {
   return configuredBaseUrl || '/backend'
   // #endif
   // App-Plus 使用线上 HTTP 反向代理；接口路径会拼成 /backend/v1/...
-  return configuredBaseUrl || 'https://113.44.188.18/backend'
+  return configuredBaseUrl || 'https://lifeai-shiguang.com/backend'
 }
 
 export const backendAssetUrl = (path) => `${baseUrl()}${path}`

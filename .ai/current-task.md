@@ -1,10 +1,1 @@
-# Current Task
-
-无进行中任务。
-
-最近完成：
-- `docs/` 用户文档
-- Project Memory MCP（绝对路径 → `lifeAI/.ai`）
-- 本轮 `.ai` 记忆已同步并做了归档整理
-
-可选下一步：正式账号登录、重复日程本地通知、生产部署 / 图片对象存储。
+已完成 uni-app Android 离线打包流程搭建：APK 生成在 uniapp/android-pack/拾光AI-0.0.1.apk，所有配置（AppKey/Uni Push/签名/包名）记录在 uniapp/android-pack/PACK_CONFIG.md。后续改代码重打按该文件末尾命令：pnpm run build:app → 拷资源 → gradlew assembleRelease → adb install。

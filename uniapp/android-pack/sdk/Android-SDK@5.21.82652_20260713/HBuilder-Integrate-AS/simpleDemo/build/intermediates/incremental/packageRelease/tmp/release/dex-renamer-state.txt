@@ -1,0 +1,7 @@
+#Sat Jul 18 23:01:39 CST 2026
+base.0=/Users/tangwenjing/WeChatProjects/lifeAI/uniapp/android-pack/sdk/Android-SDK@5.21.82652_20260713/HBuilder-Integrate-AS/simpleDemo/build/intermediates/dex/release/mergeDexRelease/classes.dex
+base.1=/Users/tangwenjing/WeChatProjects/lifeAI/uniapp/android-pack/sdk/Android-SDK@5.21.82652_20260713/HBuilder-Integrate-AS/simpleDemo/build/intermediates/dex/release/mergeDexRelease/classes2.dex
+path.0=classes.dex
+path.1=classes2.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex

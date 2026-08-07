@@ -1,0 +1,19 @@
+<lint-module
+    format="1"
+    dir="/Users/tangwenjing/WeChatProjects/lifeAI/uniapp/android-pack/sdk/Android-SDK@5.21.82652_20260713/HBuilder-Integrate-AS/simpleDemo"
+    name=":simpleDemo"
+    type="APP"
+    maven="HBuilder-Integrate-AS:simpleDemo:unspecified"
+    agpVersion="8.7.3"
+    buildFolder="build"
+    bootClassPath="/Users/tangwenjing/Library/Android/sdk/platforms/android-35/android.jar:/Users/tangwenjing/Library/Android/sdk/build-tools/35.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-35"
+    neverShrinking="true">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>

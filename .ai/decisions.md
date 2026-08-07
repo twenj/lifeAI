@@ -25,3 +25,9 @@
 - 2026-07-12: 聊天多关键词时按出现位置：越靠前权重越高，只归入最先出现的模块（primaryKeywordCategory）。
 - 2026-07-12: 记账以自然月为周期：首页仅当月；历史记录列出往月，可进入月度明细。
 - 2026-07-12: 记账自动入库关键词使用“收入/支出”，不使用“记账”作为触发词。
+- 2026-07-18: Android 离线打包采用本地离线 SDK 方式（而非 HBuilderX 云打包），SDK 版本 alpha 5.21.82652 与项目编译器 5.21 匹配
+- 2026-07-18: Android 包名定为 uni.app.UNIF35B226（沿用此前云打包配置，DCloud 开发者中心各平台信息一致）
+- 2026-07-18: 签名证书为本地自生成 lifeai.keystore（RSA 2048，有效期100年），开发者中心 Android 平台信息的 SHA1 已更新为该证书指纹
+- 2026-07-18: Uni Push 使用 v1（个推），AppID/AppKey/AppSecret 在 DCloud 开发者中心 uni-push→1.0→消息推送→应用配置 获取
+- 2026-07-18: Push 模块集成要点：libs 必须同时包含 aps-release.aar（基座）和 aps-unipush-release.aar；dcloud_properties.xml 必须在 features 里注册 Push feature；manifestPlaceholders 带点号的 key（plus.unipush.appid 等）须用 .put() 方式赋值，不能用 map 字面量；根 build.gradle 须加 getui maven 仓库 https://mvn.getui.com/nexus/content/repositories/releases/
+- 2026-07-18: 扫码功能必须在 AndroidManifest 声明 android.permission.CAMERA 权限，否则 plus.android.requestPermissions 申请会直接失败

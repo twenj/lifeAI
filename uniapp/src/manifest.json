@@ -2,8 +2,8 @@
     "name" : "拾光AI",
     "appid" : "__UNI__F35B226",
     "description" : "基于AI聊天的日常生活应用",
-    "versionName" : "0.0.1",
-    "versionCode" : 1,
+    "versionName" : "0.0.3",
+    "versionCode" : 3,
     "h5" : {
         "title" : "拾光AI",
         "router" : {

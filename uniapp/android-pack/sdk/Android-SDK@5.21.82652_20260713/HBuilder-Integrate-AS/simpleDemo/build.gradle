@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 35
+    buildToolsVersion '35.0.0'
+    namespace 'com.android.simple'
+    defaultConfig {
+        applicationId "uni.app.UNIF35B226"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 3
+        versionName "0.0.3"
+        multiDexEnabled true
+        // Gradle 的 manifestPlaceholders map key 不能含点号，
+        // 这里用 setManifestPlaceholder 方式逐个 put，支持带点号的占位符名（aps-unipush aar 需要）
+        manifestPlaceholders.put("apk.applicationId", "uni.app.UNIF35B226")
+        manifestPlaceholders.put("GETUI_APPID", "QTO85N8FL06wTORSVuJXs6")
+        manifestPlaceholders.put("plus.unipush.appid", "QTO85N8FL06wTORSVuJXs6")
+        manifestPlaceholders.put("plus.unipush.appkey", "SEqiFLtBmIAUCMWOaW29T3")
+        manifestPlaceholders.put("plus.unipush.appsecret", "XTGxuc8RQJ7L6Nt94PUb7A")
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+    }
+    signingConfigs {
+        config {
+            keyAlias 'lifeai'
+            keyPassword 'lifeai123'
+            storeFile file('lifeai.keystore')
+            storePassword 'lifeai123'
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    aaptOptions {
+        additionalParameters '--auto-add-overlay'
+        ignoreAssetsPattern "!.svn:!.git:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.core:core:1.1.0'
+    implementation "androidx.fragment:fragment:1.1.0"
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'com.facebook.fresco:fresco:2.5.0'
+    implementation "com.facebook.fresco:animated-gif:2.5.0"
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    implementation 'com.alibaba:fastjson:1.2.83'
+    implementation 'androidx.webkit:webkit:1.5.0'
+    implementation('com.getui:gtsdk:3.3.7.0'){
+        exclude(group: 'com.getui')
+    }//个推SDK
+    implementation('com.getui:gtc-dcloud:3.2.16.7')  //个推核心组件
+}
+

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="uni.app.UNIF35B226"
+    android:versionCode="3"
+    android:versionName="0.0.3" >
+
+    <uses-sdk
+        android:minSdkVersion="21"
+        android:targetSdkVersion="33" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:resizeable="true"
+        android:smallScreens="true" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- 适配android 13 图片选择权限 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--
+    <uses-permission
+        android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
+    -->
+    <!-- 华为修改角标需要设置权限 -->
+    <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" /> <!-- vivo 修改角标需要设置权限 -->
+    <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent>
+        <intent>
+            <action android:name="com.getui.sdk.action" />
+        </intent>
+    </queries>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 自定义权限 -->
+    <uses-permission android:name="getui.permission.GetuiService.uni.app.UNIF35B226" />
+
+    <permission
+        android:name="getui.permission.GetuiService.uni.app.UNIF35B226"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="com.asus.msa.SupplementaryDID.ACCESS" />
+    <uses-permission android:name="freemme.permission.msa" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.GET_TASKS" /> <!-- oppo android12  需要 alarm权限 -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <application
+        android:name="io.dcloud.application.DCloudApplication"
+        android:allowBackup="true"
+        android:allowClearUserData="true"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:enableOnBackInvokedCallback="false"
+        android:extractNativeLibs="true"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true" >
+        <activity
+            android:name="io.dcloud.PandoraEntry"
+            android:configChanges="orientation|keyboardHidden|keyboard|navigation"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="user"
+            android:theme="@style/TranslucentTheme"
+            android:windowSoftInputMode="adjustResize" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="io.dcloud.PandoraEntryActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|mcc|mnc|fontScale|keyboard|smallestScreenSize|screenLayout|screenSize|uiMode"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
+            android:permission="com.miui.securitycenter.permission.AppPermissionsEditor"
+            android:screenOrientation="user"
+            android:theme="@style/DCloudTheme"
+            android:windowSoftInputMode="adjustResize" >
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <action android:name="android.intent.action.VIEW" />
+
+                <data android:scheme=" " />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="dcloud_appkey"
+            android:value="011a96325e13804621353f0e03568fdb" />
+        <!--
+        <activity
+            android:name="io.dcloud.imagepick.CustomGalleryActivity"
+            android:noHistory="true"
+            android:exported="false"/>
+        -->
+        <activity
+            android:name="io.dcloud.feature.nativeObj.photoview.PhotoActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:exported="false"
+            android:noHistory="false"
+            android:screenOrientation="behind"
+            android:theme="@style/DCloudTheme.Light" />
+        <activity
+            android:name="io.dcloud.WebAppActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden|smallestScreenSize|screenLayout|screenSize|mcc|mnc|fontScale|navigation"
+            android:hardwareAccelerated="true"
+            android:icon="@drawable/dcloud_recent"
+            android:label="@string/stream_my"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/DCloudTheme"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="io.dcloud.ProcessMediator"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name="io.dcloud.WebviewActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppCompat.ThemeNoTitleBar"
+            android:windowSoftInputMode="adjustPan" >
+        </activity> <!-- gallery******start -->
+        <activity
+            android:name="com.dmcbig.mediapicker.PickerActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/DeviceDefault.Light"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+        <activity
+            android:name="com.dmcbig.mediapicker.PreviewActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/DeviceDefault.Light"
+            android:windowSoftInputMode="stateAlwaysHidden" /> <!-- gallery******end -->
+        <provider
+            android:name="io.dcloud.common.util.DCloud_FileProvider"
+            android:authorities="uni.app.UNIF35B226.dc.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/dcloud_file_provider" />
+        </provider>
+        <!--
+            <meta-data
+            android:name="DCLOUD_STREAMAPP_CHANNEL"
+            android:value="io.dcloud.%APPID%|%APPID%|" />
+        -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.4" />
+
+        <activity
+            android:name="io.dcloud.feature.gallery.imageedit.IMGEditActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false"
+            android:theme="@style/ImageEditTheme"
+            android:windowSoftInputMode="stateAlwaysHidden" /> <!-- 广告相关配置开始 -->
+        <activity
+            android:name="io.dcloud.sdk.activity.WebViewActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/ThemeNoTitleBar"
+            android:windowSoftInputMode="adjustPan" />
+
+        <service
+            android:name="io.dcloud.sdk.base.service.DownloadService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <provider
+            android:name="io.dcloud.sdk.base.service.provider.DCloudAdFileProvider"
+            android:authorities="uni.app.UNIF35B226.dc.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/dcloud_gg_file_provider" />
+        </provider> <!-- 用户自定义服务继承自GTIntentService,作为SDK与APP桥梁服务,用来接收各种消息和命令回复 -->
+        <service android:name="io.dcloud.feature.unipush.GTNormalIntentService" /> <!-- 请根据您当前自定义的 PushService 名称路径进行配置 -->
+        <service
+            android:name="io.dcloud.feature.unipush.CustomGTService"
+            android:exported="false"
+            android:label="PushService"
+            android:process=":pushservice" />
+
+        <activity
+            android:name="com.igexin.sdk.PushActivity"
+            android:configChanges="screenSize|orientation"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:process=":pushservice"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="GETUI_APPID"
+            android:value="QTO85N8FL06wTORSVuJXs6" />
+        <meta-data
+            android:name="PUSH_APPID"
+            android:value="QTO85N8FL06wTORSVuJXs6" />
+        <meta-data
+            android:name="PUSH_APPKEY"
+            android:value="SEqiFLtBmIAUCMWOaW29T3" />
+        <meta-data
+            android:name="PUSH_APPSECRET"
+            android:value="XTGxuc8RQJ7L6Nt94PUb7A" />
+
+        <receiver
+            android:name="com.taobao.weex.WXGlobalEventReceiver"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver> <!-- ⽤来登记渠道的信息 -->
+        <meta-data
+            android:name="ZX_CHANNEL_ID"
+            android:value="C01-GEztJH0JLdBC" /> <!-- ⽤来注册登记第三⽅ SDK 的 AppId 信息 -->
+        <meta-data
+            android:name="ZX_APPID_GETUI"
+            android:value="913e6a50-c3b6-4989-8ac6-1ecb53649be3" /> <!-- 配置SDK核心服务 -->
+        <service
+            android:name="com.igexin.sdk.PushService"
+            android:exported="false"
+            android:label="NotificationCenter"
+            android:process=":pushservice" />
+        <service
+            android:name="com.igexin.sdk.GTIntentService"
+            android:exported="true" />
+        <service
+            android:name="com.igexin.sdk.GService"
+            android:exported="true"
+            android:process=":pushservice" >
+            <intent-filter>
+                <action android:name="com.getui.sdk.action" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name="com.igexin.sdk.GetuiActivity"
+            android:exported="true"
+            android:process=":pushservice"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+            <intent-filter>
+                <action android:name="com.getui.sdk.action" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.igexin.sdk.PopupActivity"
+            android:configChanges="screenSize|orientation"
+            android:exported="false"
+            android:process=":pushservice"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="GTSDK_VERSION"
+            android:value="3.3.7.0" />
+
+        <service
+            android:name="com.getui.gtc.GtcService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.getui.gtc.sdk.service.action" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="com.getui.gtc.base.GtcProvider"
+            android:authorities="uni.app.UNIF35B226.getui.gtc.provider"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -2,13 +2,23 @@
 import { backendApi } from './lib/api.js'
 import { initLocalPush, scheduleLocalReminder } from './lib/notifications.js'
 
+const loadSchedulesAndReminders = () => {
+  initLocalPush()
+  backendApi.login()
+    .then(() => backendApi.schedules())
+    .then((result) => (result.items || []).forEach(scheduleLocalReminder))
+    .catch((error) => console.warn('schedule reminders load failed', error))
+}
+
 export default {
   onLaunch() {
-    initLocalPush()
-    backendApi.login()
-      .then(() => backendApi.schedules())
-      .then((result) => (result.items || []).forEach(scheduleLocalReminder))
-      .catch((error) => console.warn('schedule reminders load failed', error))
+    // Push 模块由原生运行时异步注册；过早调用会被 Runtime 误判为“未添加模块”。
+    // #ifdef APP-PLUS
+    document.addEventListener('plusready', loadSchedulesAndReminders, { once: true })
+    // #endif
+    // #ifndef APP-PLUS
+    backendApi.login().catch((error) => console.warn('backend login failed', error))
+    // #endif
   },
 }
 </script>
